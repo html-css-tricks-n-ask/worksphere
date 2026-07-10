@@ -20,11 +20,26 @@ const app = express();
 // Security HTTP Headers
 app.use(helmet());
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://worksphere-eeui.vercel.app',
+];
+
 // Enable CORS
 app.use(cors({
-  origin: true, // Allow all origins for development, can be configured via env
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  maxAge: 86400, // Cache preflight OPTIONS requests for 24 hours to reduce browser requests overhead
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  maxAge: 86400, // Cache preflight OPTIONS requests for 24 hours
 }));
 
 // Gzip compression

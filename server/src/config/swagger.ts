@@ -13,8 +13,8 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000/api/v1',
-        description: 'Development Server',
+        url: process.env.VITE_API_URL || 'http://localhost:5002/api/v1',
+        description: 'Server API Endpoint',
       },
     ],
     components: {

@@ -15,10 +15,11 @@ const COOKIE_NAME = 'worksphere_refresh_token';
  * Configure standard HTTPOnly cookies parameters.
  */
 const setRefreshTokenCookie = (res: Response, token: string) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/api/v1/auth',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
@@ -56,10 +57,11 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
  * Logout authenticated user sessions by clearing authentication cookies parameters.
  */
 export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/api/v1/auth',
   });
   res.status(200).json(new ApiResponse(200, null, 'Logged out successfully.'));

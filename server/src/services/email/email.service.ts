@@ -48,14 +48,15 @@ class EmailService {
   }
 
   async sendVerificationEmail(email: string, name: string, token: string): Promise<boolean> {
-    const verifyUrl = `${process.env.VITE_API_URL || 'http://localhost:5002/api/v1'}/auth/verify-email?token=${token}`;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const verifyUrl = `${clientUrl}/verify-email?token=${token}`;
     const html = verifyEmailTemplate(name, verifyUrl);
     return this.sendMail(email, 'Verify Your WorkSphere Account', html);
   }
 
   async sendResetPasswordEmail(email: string, name: string, token: string): Promise<boolean> {
-    // In React 19 Frontend:
-    const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const resetUrl = `${clientUrl}/reset-password?token=${token}`;
     const html = resetPasswordTemplate(name, resetUrl);
     return this.sendMail(email, 'Reset Your WorkSphere Password', html);
   }
