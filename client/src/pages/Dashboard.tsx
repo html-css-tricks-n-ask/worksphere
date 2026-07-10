@@ -123,13 +123,13 @@ export const Dashboard: React.FC = () => {
       {/* Primary Analytics Grid */}
       <div className="grid gap-6 md:grid-cols-7">
         {/* Attendance overview block */}
-        <Card className="md:col-span-4">
-          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+        <Card className="md:col-span-4 overflow-hidden">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-4">
             <div>
               <CardTitle>Recent Actions</CardTitle>
               <CardDescription>Log of recently processed employees</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate('/employees')}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs self-start sm:self-auto" onClick={() => navigate('/employees')}>
               View Registry <ArrowUpRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
