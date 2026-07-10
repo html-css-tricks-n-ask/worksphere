@@ -1,0 +1,44 @@
+import { Router } from 'express';
+import healthRouter from './health.js';
+import authRouter from './auth.js';
+import companyRouter from './company.js';
+import uploadsRouter from './uploads.js';
+import employeesRouter from './employees.js';
+import departmentsRouter from './departments.js';
+import designationsRouter from './designations.js';
+import attendanceRouter from './attendance.js';
+import leavesRouter from './leaves.js';
+import shiftsRouter from './shifts.js';
+import holidaysRouter from './holidays.js';
+import payrollRouter from './payroll.js';
+import documentsRouter from './documents.js';
+import reportsRouter from './reports.js';
+import reimbursementsRouter from './reimbursements.js';
+import compensationRouter from './compensation.js';
+import settingsRouter from './settings.js';
+import notificationsRouter from './notifications.js';
+import aiRouter from './ai.js';
+
+const router = Router();
+
+router.use('/health', healthRouter);
+router.use('/auth', authRouter);
+router.use('/company', companyRouter);
+router.use('/uploads', uploadsRouter);
+router.use('/employees', employeesRouter);
+router.use('/departments', departmentsRouter);
+router.use('/designations', designationsRouter);
+router.use('/attendance', attendanceRouter);
+router.use('/leaves', leavesRouter);
+router.use('/shifts', shiftsRouter);
+router.use('/holidays', holidaysRouter);
+router.use('/payroll', payrollRouter);
+router.use('/documents', documentsRouter);
+router.use('/reports', reportsRouter);
+router.use('/reimbursements', reimbursementsRouter);
+router.use('/compensation', compensationRouter);
+router.use('/settings', settingsRouter);
+router.use('/notifications', notificationsRouter);
+router.use('/ai', aiRouter);
+
+export default router;

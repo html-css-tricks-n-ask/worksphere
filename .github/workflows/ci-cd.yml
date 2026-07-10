@@ -1,0 +1,46 @@
+name: WorkSphere CI/CD Release Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      # ─── Test Backend ────────────────────────────────────────────────────────
+      - name: Install Server Dependencies
+        run: |
+          cd server
+          npm ci
+
+      - name: Run Backend Unit Tests
+        run: |
+          cd server
+          npm run test
+
+      # ─── Build Frontend ───────────────────────────────────────────────────────
+      - name: Install Client Dependencies
+        run: |
+          cd client
+          npm ci --legacy-peer-deps
+
+      - name: Build Frontend Application
+        run: |
+          cd client
+          npm run build

@@ -1,0 +1,71 @@
+# ─── Node & Dependencies ──────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+!.env.example
+
+# ─── Build & Outputs ──────────────────────────────────────────────────────────
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.turbo/
+
+# ─── Testing & Coverage ───────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+jest-html-reporters-attach/
+
+# ─── IDEs & Editors ───────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvsca*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+
+# ─── Operating System Files ────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── Logs & Run Files ──────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+server/logs/
+server/combined-*.log
+server/error-*.log
+server/auth-*.log
+
+# ─── Agent System Files ────────────────────────────────────────────────────────
+.agents/
+.gemini/
+.system_generated/
+mcp.json

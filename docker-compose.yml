@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  database:
+    image: mongo:6.0
+    container_name: worksphere-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - worksphere-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worksphere-app
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://database:27017/worksphere
+      - JWT_SECRET=production_secret_key_change_me_in_prod
+      - JWT_REFRESH_SECRET=production_refresh_secret_key_change_me_in_prod
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - worksphere-network
+
+volumes:
+  mongo-data:
+
+networks:
+  worksphere-network:
+    driver: bridge
