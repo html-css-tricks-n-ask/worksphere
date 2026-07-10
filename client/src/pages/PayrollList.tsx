@@ -9,6 +9,8 @@ import { axiosInstance } from '../services/axiosInstance.js';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card.js';
 import { Button } from '../components/ui/button.js';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1';
+
 interface Employee {
   firstName: string;
   lastName: string;
@@ -169,7 +171,7 @@ const PayrollList: React.FC = () => {
                           <span className="p-1.5 text-emerald-600 bg-emerald-500/10 rounded"><CheckCircle2 size={14} /></span>
                         )}
                         <a
-                          href={`http://localhost:5002/api/v1/payroll/${r._id}/payslip`}
+                          href={`${API_BASE}/payroll/${r._id}/payslip`}
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-500/10 rounded transition-colors block"

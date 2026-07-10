@@ -2,10 +2,9 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 import { store } from '../redux/store.js';
 import { logout } from '../redux/slices/authSlice.js';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-
 export const axiosInstance: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1',
+  withCredentials: true,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
