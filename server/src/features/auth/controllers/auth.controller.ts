@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/auth.service.js';
-import { ApiResponse, ApiError } from '../utils/responseWrapper.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiResponse, ApiError } from '../../../utils/responseWrapper.js';
+import { asyncHandler } from '../../../utils/asyncHandler.js';
 import {
   registerCompanySchema,
   loginSchema,
@@ -11,6 +11,9 @@ import {
 
 const COOKIE_NAME = 'worksphere_refresh_token';
 
+/**
+ * Configure standard HTTPOnly cookies parameters.
+ */
 const setRefreshTokenCookie = (res: Response, token: string) => {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
@@ -21,12 +24,18 @@ const setRefreshTokenCookie = (res: Response, token: string) => {
   });
 };
 
+/**
+ * Register a new company and administrator profile.
+ */
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const parsed = registerCompanySchema.parse(req.body);
   const result = await authService.registerCompany(parsed.company, parsed.admin);
   res.status(201).json(new ApiResponse(201, result, 'Company registered successfully. Please verify your email.'));
 });
 
+/**
+ * Authenticate credentials, set refresh token cookie, and return access token details.
+ */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const parsed = loginSchema.parse(req.body);
   const result = await authService.login(parsed.email, parsed.password);
@@ -43,6 +52,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
+/**
+ * Logout authenticated user sessions by clearing authentication cookies parameters.
+ */
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
@@ -53,6 +65,9 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, null, 'Logged out successfully.'));
 });
 
+/**
+ * Rotate access tokens using current cookies or body credentials parameters.
+ */
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   // Try loading from cookie first, fallback to request body
   const token = req.cookies[COOKIE_NAME] || req.body.refreshToken;
@@ -65,6 +80,9 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, result, 'Access token refreshed successfully.'));
 });
 
+/**
+ * Verify registered administrator email address using recovery token parameters.
+ */
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const token = String(req.query.token || req.body.token);
   if (!token) {
@@ -74,6 +92,9 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, null, result.message));
 });
 
+/**
+ * Resend verification email links to unverified administrator users.
+ */
 export const resendVerification = asyncHandler(async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
@@ -83,12 +104,18 @@ export const resendVerification = asyncHandler(async (req: Request, res: Respons
   res.status(200).json(new ApiResponse(200, null, result.message));
 });
 
+/**
+ * Request password recovery email validation parameters.
+ */
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
   const parsed = forgotPasswordSchema.parse(req.body);
   const result = await authService.forgotPassword(parsed.email);
   res.status(200).json(new ApiResponse(200, null, result.message));
 });
 
+/**
+ * Reset user password configurations.
+ */
 export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
   const parsed = resetPasswordSchema.parse(req.body);
   const result = await authService.resetPassword(parsed.token, parsed.password);

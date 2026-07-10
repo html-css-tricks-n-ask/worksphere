@@ -1,72 +1,71 @@
-import crypto from "crypto";
-import { ApiError } from "../utils/responseWrapper.js";
-import { companyRepository } from "../repositories/company.repository.js";
-import { userRepository } from "../repositories/user.repository.js";
-import { hashPassword, comparePassword } from "../utils/password.js";
+import crypto from 'crypto';
+import { ApiError } from '../../../utils/responseWrapper.js';
+import { companyRepository } from '../../../repositories/company.repository.js';
+import { userRepository } from '../../../repositories/user.repository.js';
+import { hashPassword, comparePassword } from '../../../utils/password.js';
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
-} from "../utils/jwt.js";
-import { emailService } from "./email/email.service.js";
-import { IUser } from "../models/User.js";
-import { ICompany } from "../models/Company.js";
+} from '../../../utils/jwt.js';
+import { emailService } from '../../../services/email/email.service.js';
+import { ICompany } from '../../../models/Company.js';
+import { IUser } from '../../../models/User.js';
 
+/**
+ * Enterprise service coordinating authentication validation, credentials sync,
+ * email invitations, and JWT token rotation policies.
+ */
 class AuthService {
+  /**
+   * Registers a new tenant organization and sets up its initial administrator user.
+   */
   async registerCompany(
     companyData: Partial<ICompany>,
-    adminData: Partial<IUser>,
+    adminData: Partial<IUser>
   ) {
     if (!companyData.email || !companyData.name) {
-      throw new ApiError(400, "Company name and email are required.");
+      throw new ApiError(400, 'Company name and email are required.');
     }
     if (!adminData.email || !adminData.password) {
-      throw new ApiError(400, "Admin email and password are required.");
+      throw new ApiError(400, 'Admin email and password are required.');
     }
 
     // Check if Company Email is unique
-    const existingCompany = await companyRepository.findByEmail(
-      companyData.email,
-    );
+    const existingCompany = await companyRepository.findByEmail(companyData.email);
     if (existingCompany) {
-      throw new ApiError(
-        400,
-        "A company with this email address already exists.",
-      );
+      throw new ApiError(400, 'A company with this email address already exists.');
     }
 
     // Check if Admin Email is unique
     const existingAdmin = await userRepository.findByEmail(adminData.email);
     if (existingAdmin) {
-      throw new ApiError(
-        400,
-        "An administrator account with this email address already exists.",
-      );
+      throw new ApiError(400, 'An administrator account with this email address already exists.');
     }
 
     // Create Company
     const company = await companyRepository.create({
       ...companyData,
-      status: "Active",
+      status: 'Active',
     });
 
     // Hash Admin Password
     const hashedPassword = await hashPassword(adminData.password);
 
     // Generate Verification Token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create Admin User
     const admin = await userRepository.create({
-      firstName: adminData.firstName || "Admin",
-      lastName: adminData.lastName || "User",
+      firstName: adminData.firstName || 'Admin',
+      lastName: adminData.lastName || 'User',
       email: adminData.email.toLowerCase(),
       password: hashedPassword,
       phone: adminData.phone,
-      role: "Company Admin",
+      role: 'Company Admin',
       companyId: company._id as any,
-      status: "Pending",
+      status: 'Pending',
       emailVerified: false,
       verificationToken,
       verificationExpires,
@@ -79,7 +78,7 @@ class AuthService {
     await emailService.sendVerificationEmail(
       admin.email,
       `${admin.firstName} ${admin.lastName}`,
-      verificationToken,
+      verificationToken
     );
 
     return {
@@ -88,30 +87,25 @@ class AuthService {
     };
   }
 
+  /**
+   * Log in user and generate access & refresh token structures.
+   */
   async login(email: string, password: string) {
     // Find user and select password
     const user = await userRepository.findByEmail(email, true);
     if (!user) {
-      throw new ApiError(401, "Invalid email or password.");
+      throw new ApiError(401, 'Invalid email or password.');
     }
 
     // Validate Password
-    const isMatch = await comparePassword(password, user.password || "");
+    const isMatch = await comparePassword(password, user.password || '');
     if (!isMatch) {
-      throw new ApiError(401, "Invalid email or password.");
+      throw new ApiError(401, 'Invalid email or password.');
     }
 
-    // Check Email Verification
-    // if (!user.emailVerified) {
-    //   throw new ApiError(403, 'Please verify your email address before logging in.');
-    // }
-
     // Check Account Status
-    if (user.status === "Inactive") {
-      throw new ApiError(
-        403,
-        "Your account has been deactivated. Please contact support.",
-      );
+    if (user.status === 'Inactive') {
+      throw new ApiError(403, 'Your account has been deactivated. Please contact support.');
     }
 
     // Update Last Login
@@ -143,45 +137,51 @@ class AuthService {
     };
   }
 
+  /**
+   * Verify email verification link token and activate user account profile.
+   */
   async verifyEmail(token: string) {
     const user = await userRepository.findByVerificationToken(token);
     if (!user) {
-      throw new ApiError(400, "Invalid or expired verification token.");
+      throw new ApiError(400, 'Invalid or expired verification token.');
     }
 
     // Update User verification status
     user.emailVerified = true;
-    user.status = "Active";
+    user.status = 'Active';
     user.verificationToken = undefined;
     user.verificationExpires = undefined;
     await user.save();
 
     // Get Company details for welcome email
     const company = await companyRepository.findById(user.companyId.toString());
-    const companyName = company ? company.name : "WorkSphere";
+    const companyName = company ? company.name : 'WorkSphere';
 
     // Send Welcome Email
     await emailService.sendWelcomeEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
-      companyName,
+      companyName
     );
 
-    return { message: "Email address verified successfully." };
+    return { message: 'Email address verified successfully.' };
   }
 
+  /**
+   * Resend account verification token.
+   */
   async resendVerificationEmail(email: string) {
     const user = await userRepository.findByEmail(email, true);
     if (!user) {
-      throw new ApiError(404, "No account found with this email address.");
+      throw new ApiError(404, 'No account found with this email address.');
     }
 
     if (user.emailVerified) {
-      throw new ApiError(400, "This email address is already verified.");
+      throw new ApiError(400, 'This email address is already verified.');
     }
 
     // Generate New Token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.verificationToken = verificationToken;
@@ -191,24 +191,26 @@ class AuthService {
     await emailService.sendVerificationEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
-      verificationToken,
+      verificationToken
     );
 
-    return { message: "Verification email resent successfully." };
+    return { message: 'Verification email resent successfully.' };
   }
 
+  /**
+   * Generate password recovery token link and dispatch email.
+   */
   async forgotPassword(email: string) {
     const user = await userRepository.findByEmail(email, true);
     if (!user) {
       // Return success anyway for security reasons (don't leak registered accounts)
       return {
-        message:
-          "If an account exists with this email, a reset link has been sent.",
+        message: 'If an account exists with this email, a reset link has been sent.',
       };
     }
 
     // Generate Reset Token
-    const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordToken = crypto.randomBytes(32).toString('hex');
     const resetPasswordExpires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
 
     user.resetPasswordToken = resetPasswordToken;
@@ -218,16 +220,19 @@ class AuthService {
     await emailService.sendResetPasswordEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
-      resetPasswordToken,
+      resetPasswordToken
     );
 
-    return { message: "Password reset link sent successfully." };
+    return { message: 'Password reset link sent successfully.' };
   }
 
+  /**
+   * Reset credentials configuration using recovery token details.
+   */
   async resetPassword(token: string, newPassword: string) {
     const user = await userRepository.findByResetToken(token);
     if (!user) {
-      throw new ApiError(400, "Invalid or expired password reset token.");
+      throw new ApiError(400, 'Invalid or expired password reset token.');
     }
 
     // Hash New Password
@@ -237,11 +242,13 @@ class AuthService {
     await user.save();
 
     return {
-      message:
-        "Password has been reset successfully. Please log in with your new credentials.",
+      message: 'Password has been reset successfully. Please log in with your new credentials.',
     };
   }
 
+  /**
+   * Rotate access token from request refresh token properties.
+   */
   async rotateAccessToken(refreshTokenStr: string) {
     try {
       const decoded = verifyRefreshToken(refreshTokenStr);
@@ -258,7 +265,7 @@ class AuthService {
       const accessToken = generateAccessToken(payload);
       return { accessToken };
     } catch (error) {
-      throw new ApiError(401, "Invalid or expired refresh token.");
+      throw new ApiError(401, 'Invalid or expired refresh token.');
     }
   }
 }

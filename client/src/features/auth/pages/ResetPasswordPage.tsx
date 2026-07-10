@@ -1,36 +1,40 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
-import { Button } from '../components/ui/button.js';
-import { Input } from '../components/ui/input.js';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.js';
-import { axiosInstance } from '../services/axiosInstance.js';
+import { resetPasswordSchema, ResetPasswordInput } from '../schemas/auth.schema.js';
+import { authService } from '../services/auth.service.js';
+import { Button } from '../../../components/ui/button.js';
+import { Input } from '../../../components/ui/input.js';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card.js';
 
-export const ResetPassword: React.FC = () => {
+/**
+ * Orchestrator ResetPasswordPage component.
+ * Validates new credentials configuration parameters using validation schemas.
+ */
+export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: '', confirmPassword: '' },
+  });
+
+  const onSubmit = async (data: ResetPasswordInput) => {
     if (!token) {
       setError('Invalid reset link token.');
       return;
     }
-    if (password !== confirmPassword) {
-      setError("Passwords don't match.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     try {
-      await axiosInstance.post('/auth/reset-password', { token, password });
+      await authService.resetPassword(token, data);
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to reset password.');
@@ -89,7 +93,7 @@ export const ResetPassword: React.FC = () => {
           <CardDescription>Setup a new security credentials password</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
               <div className="p-3 text-xs text-destructive bg-destructive/10 rounded-lg font-medium border border-destructive/20">
                 {error}
@@ -103,12 +107,13 @@ export const ResetPassword: React.FC = () => {
                   type="password"
                   placeholder="••••••••"
                   className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register('password')}
                 />
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               </div>
+              {errors.password && (
+                <p className="text-[10px] font-semibold text-rose-500">{errors.password.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -118,12 +123,13 @@ export const ResetPassword: React.FC = () => {
                   type="password"
                   placeholder="••••••••"
                   className="pl-10"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                  {...register('confirmPassword')}
                 />
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               </div>
+              {errors.confirmPassword && (
+                <p className="text-[10px] font-semibold text-rose-500">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
             <Button type="submit" disabled={loading} className="w-full vibrant-gradient text-white hover:brightness-110 shadow-lg border-0 gap-2">
@@ -148,4 +154,4 @@ export const ResetPassword: React.FC = () => {
   );
 };
 
-export default ResetPassword;
+export default ResetPasswordPage;

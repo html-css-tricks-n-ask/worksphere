@@ -34,11 +34,7 @@ import Reports from '../pages/Reports.js';
 import Notifications from '../pages/Notifications.js';
 import Profile from '../pages/Profile.js';
 import CompanyProfile from '../pages/CompanyProfile.js';
-import Login from '../pages/Login.js';
-import RegisterCompany from '../pages/RegisterCompany.js';
-import ForgotPassword from '../pages/ForgotPassword.js';
-import ResetPassword from '../pages/ResetPassword.js';
-import VerifyEmail from '../pages/VerifyEmail.js';
+import { Login, RegisterCompany, ForgotPassword, ResetPassword, VerifyEmail } from '../features/auth/index.js';
 import NotFound from '../pages/NotFound.js';
 
 export const AppRoutes: React.FC = () => {

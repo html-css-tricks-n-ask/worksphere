@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+/**
+ * Zod validation schema for new company and administrator registration.
+ */
 export const registerCompanySchema = z.object({
   company: z.object({
     name: z.string({ required_error: 'Company name is required.' }).min(2, 'Company name must be at least 2 characters.'),
@@ -27,15 +30,24 @@ export const registerCompanySchema = z.object({
   }),
 });
 
+/**
+ * Zod validation schema for employee/admin login inputs.
+ */
 export const loginSchema = z.object({
   email: z.string({ required_error: 'Email is required.' }).email('Invalid email address.'),
   password: z.string({ required_error: 'Password is required.' }).min(1, 'Password is required.'),
 });
 
+/**
+ * Zod validation schema for requesting forgot password link.
+ */
 export const forgotPasswordSchema = z.object({
   email: z.string({ required_error: 'Email is required.' }).email('Invalid email address.'),
 });
 
+/**
+ * Zod validation schema for resetting password credentials.
+ */
 export const resetPasswordSchema = z.object({
   token: z.string({ required_error: 'Token is required.' }),
   password: z

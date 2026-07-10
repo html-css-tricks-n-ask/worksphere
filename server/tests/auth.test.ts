@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { authService } from '../src/services/auth.service.js';
+import { authService } from '../src/features/auth/index.js';
 import { companyRepository } from '../src/repositories/company.repository.js';
 import { userRepository } from '../src/repositories/user.repository.js';
 import { emailService } from '../src/services/email/email.service.js';

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import healthRouter from './health.js';
-import authRouter from './auth.js';
+import { authRouter } from '../features/auth/index.js';
 import companyRouter from './company.js';
 import uploadsRouter from './uploads.js';
 import employeesRouter from './employees.js';
