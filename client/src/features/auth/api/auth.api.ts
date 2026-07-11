@@ -3,11 +3,19 @@ import { LoginInput, RegisterFormInput, ForgotPasswordInput, ResetPasswordInput 
 
 export const authApi = {
   login: async (data: LoginInput) => {
-    const response = await axiosInstance.post('/auth/login', {
-      email: data.email,
-      password: data.password,
-    });
-    return response.data;
+    console.log(`[CLIENT API DEBUG] Invoking authApi.login. baseURL: [${axiosInstance.defaults.baseURL}], final URL: [${axiosInstance.defaults.baseURL || ''}/auth/login]`);
+    console.log(`[CLIENT API DEBUG] Request Payload:`, { email: data.email, password: '***' });
+    try {
+      const response = await axiosInstance.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
+      console.log(`[CLIENT API DEBUG] Axios POST completed. Response Status: ${response.status}`);
+      return response.data;
+    } catch (axiosError: any) {
+      console.error(`[CLIENT API DEBUG] Axios POST failed. Error message: [${axiosError.message}], code: [${axiosError.code}], details:`, axiosError.response?.data || 'No response data');
+      throw axiosError;
+    }
   },
 
   register: async (data: RegisterFormInput) => {

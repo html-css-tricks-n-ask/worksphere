@@ -14,6 +14,8 @@ export const LoginForm: React.FC = () => {
   const { loading, error, register, handleSubmit, errors } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
 
+  console.log(`[CLIENT LOGIN UI] Rendering LoginForm. errors:`, errors, `VITE_API_URL:`, import.meta.env.VITE_API_URL);
+
   return (
     <Card className="w-full max-w-md shadow-xl border bg-card/75 backdrop-blur-md">
       <CardHeader className="text-center pb-4">
@@ -96,6 +98,7 @@ export const LoginForm: React.FC = () => {
           <Button
             type="submit"
             disabled={loading}
+            onClick={() => console.log('[CLIENT UI DEBUG] Sign In button clicked!')}
             className="w-full vibrant-gradient text-white hover:brightness-110 shadow-lg border-0 mt-2 gap-2"
           >
             {loading ? (
