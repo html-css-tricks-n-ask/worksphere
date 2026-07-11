@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, ShieldCheck, Loader2 } from 'lucide-react';
+import { Mail, Lock, ShieldCheck, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useLogin } from '../hooks/useLogin.js';
 import { Button } from '../../../components/ui/button.js';
 import { Input } from '../../../components/ui/input.js';
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
  */
 export const LoginForm: React.FC = () => {
   const { loading, error, register, handleSubmit, errors } = useLogin();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <Card className="w-full max-w-md shadow-xl border bg-card/75 backdrop-blur-md">
@@ -64,12 +65,20 @@ export const LoginForm: React.FC = () => {
             <div className="relative">
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className="pl-10"
+                className="pl-10 pr-10"
                 {...register('password')}
               />
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {errors.password && (
               <p className="text-[10px] font-semibold text-rose-500">{errors.password.message}</p>
