@@ -1,4 +1,4 @@
-const CACHE_NAME = 'worksphere-cache-v1';
+const CACHE_NAME = 'worksphere-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,7 +6,7 @@ const ASSETS_TO_CACHE = [
   '/manifest.json'
 ];
 
-// Install: Cache core shell components
+// Install: Cache core shell components and force activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate: Clean up old cache keys
+// Activate: Clean up ALL old cache keys so stale JS bundles are never served
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {

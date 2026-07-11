@@ -28,11 +28,8 @@ export const useLogin = () => {
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     setError(null);
-    console.log(`[CLIENT LOGIN DEBUG] Validation passed. Submitting login request. Email: [${data.email}] (len: ${data.email.length}), Password: [${data.password}] (len: ${data.password.length})`);
-    console.log(`[CLIENT LOGIN DEBUG] VITE_API_URL env variable: [${import.meta.env.VITE_API_URL}]`);
     try {
       const authData = await authService.login(data);
-      console.log(`[CLIENT LOGIN DEBUG] Login request succeeded! Response:`, authData);
       
       // Save credentials to global Redux store
       dispatch(
@@ -44,27 +41,17 @@ export const useLogin = () => {
 
       navigate('/dashboard');
     } catch (err: any) {
-      console.error(`[CLIENT LOGIN DEBUG] Login request failed:`, err.response?.data || err);
       setError(err.response?.data?.message || 'Login failed. Invalid credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  const onInvalid = (errors: any) => {
-    console.warn('[CLIENT LOGIN DEBUG] Validation failed! Form errors:', errors);
-  };
-
-  console.log(`[CLIENT LOGIN DEBUG] rendering useLogin. errors:`, form.formState.errors);
-
-  const result = {
+  return {
     loading,
     error,
     register: form.register,
-    handleSubmit: form.handleSubmit(onSubmit, onInvalid),
+    handleSubmit: form.handleSubmit(onSubmit),
     errors: form.formState.errors,
   };
-  
-  console.log('[CLIENT LOGIN DEBUG] Returning values from useLogin hook.');
-  return result;
 };

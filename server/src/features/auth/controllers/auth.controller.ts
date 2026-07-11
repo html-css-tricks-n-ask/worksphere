@@ -50,9 +50,6 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
  */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const parsed = loginSchema.parse(req.body);
-
-  console.log(parsed, "parsed");
-
   const result = await authService.login(parsed.email, parsed.password);
 
   // Set HttpOnly refresh token cookie
