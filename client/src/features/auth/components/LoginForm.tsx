@@ -44,6 +44,10 @@ export const LoginForm: React.FC = () => {
                 type="email"
                 placeholder="name@company.com"
                 className="pl-10"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 {...register('email')}
               />
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -68,6 +72,10 @@ export const LoginForm: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 className="pl-10 pr-10"
+                autoComplete="current-password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 {...register('password')}
               />
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
