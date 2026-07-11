@@ -94,11 +94,13 @@ class AuthService {
     // Find user and select password
     const user = await userRepository.findByEmail(email, true);
     if (!user) {
+      console.log(`[AUTH SERVICE DEBUG] User not found for email: [${email}] (len: ${email.length})`);
       throw new ApiError(401, 'Invalid email or password.');
     }
 
     // Validate Password
     const isMatch = await comparePassword(password, user.password || '');
+    console.log(`[AUTH SERVICE DEBUG] Email: [${email}], Password input: [${password}] (len: ${password.length}), Hash in DB: [${user.password}], Match: ${isMatch}`);
     if (!isMatch) {
       throw new ApiError(401, 'Invalid email or password.');
     }
