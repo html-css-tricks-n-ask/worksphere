@@ -66,11 +66,11 @@ export const Dashboard: React.FC = () => {
       <div className="relative p-6 rounded-xl border bg-card overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 vibrant-gradient opacity-10 blur-3xl pointer-events-none rounded-full" />
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 items-start">
             <h1 className="text-2xl font-bold tracking-tight">
               Welcome back, {user ? user.firstName : 'Admin'}!
             </h1>
-            <Badge variant="success" className="gap-1 animate-pulse">
+            <Badge variant="success" className="gap-1 animate-pulse self-start sm:self-auto">
               <Sparkles className="h-3 w-3" /> System Optimal
             </Badge>
           </div>
@@ -78,11 +78,11 @@ export const Dashboard: React.FC = () => {
             Here's a snapshot of your organization workspace settings for today.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm" onClick={() => navigate('/company')}>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/company')}>
             Workspace Settings
           </Button>
-          <Button size="sm" onClick={() => navigate('/employees/create')}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={() => navigate('/employees/create')}>
             Register Employee
           </Button>
         </div>
