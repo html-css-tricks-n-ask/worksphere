@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
 import path from 'path';
+import { existsSync } from 'fs';
 
 // Configs and routes
 dotenv.config();
@@ -26,7 +27,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'https://worksphere-eeui.vercel.app',
-];
+  'https://worksphere-7421.vercel.app',
+  process.env.CLIENT_URL, // allow dynamic client URL from env
+].filter(Boolean) as string[];
 
 // Enable CORS
 app.use(cors({
@@ -75,21 +78,34 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Base API v1 Routes
 app.use('/api/v1', apiRouter);
 
-// ─── Serve React SPA in Production ─────────────────────────────────────────
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the built React client
-  const clientBuildPath = path.join(__dirname, 'public');
-  app.use(express.static(clientBuildPath));
+// Root ping route — for Render health probes and API status checks
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'WorkSphere API',
+    status: 'UP',
+    version: 'v1',
+    env: process.env.NODE_ENV || 'development',
+    docs: '/api-docs',
+    health: '/api/v1/health',
+  });
+});
 
-  // SPA Fallback: for any non-API route, send index.html so React Router works
+// ─── Serve React SPA in Production (Docker only) ────────────────────────────
+// Only activates when the client build exists (dist/public/index.html)
+// On Render API-only deployments this folder won't exist — skipped safely.
+const clientBuildPath = path.join(__dirname, 'public');
+const indexHtmlPath = path.join(clientBuildPath, 'index.html');
+
+if (existsSync(indexHtmlPath)) {
+  app.use(express.static(clientBuildPath));
   app.get('*', (req, res, next) => {
     if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/api-docs')) {
       return next(new ApiError(404, `Route ${req.originalUrl} (${req.method}) not found`));
     }
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
+    res.sendFile(indexHtmlPath);
   });
 } else {
-  // Handle undefined API routes in development (404)
+  // Pure API mode — 404 all non-API routes
   app.use((req, res, next) => {
     next(new ApiError(404, `Route ${req.originalUrl} (${req.method}) not found`));
   });
