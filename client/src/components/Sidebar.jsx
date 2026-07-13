@@ -24,25 +24,32 @@ import { useSelector } from 'react-redux';
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const user = useSelector((state) => state.auth.user);
-  const links = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/employees', label: 'Employees', icon: Users },
-    { to: '/departments', label: 'Departments', icon: Building2 },
-    { to: '/attendance', label: 'Attendance', icon: CalendarCheck },
-    { to: '/leave', label: 'Leave', icon: CalendarOff },
-    { to: '/holidays', label: 'Holidays', icon: Calendar },
-    { to: '/shifts', label: 'Shifts', icon: Timer },
-    { to: '/payroll', label: 'Payroll Payouts', icon: CreditCard },
-    { to: '/payroll/structures', label: 'Salary Structures', icon: CreditCard },
-    { to: '/payroll/processing', label: 'Payroll Processing', icon: CreditCard },
-    { to: '/reimbursements', label: 'Reimbursements', icon: CreditCard },
-    { to: '/compensation', label: 'Compensation Revs', icon: CreditCard },
-    { to: '/announcements', label: 'Announcements', icon: Globe },
-    { to: '/audit', label: 'Audit Logs', icon: FileText },
-    { to: '/settings', label: 'Company Settings', icon: Settings },
-    { to: '/permissions', label: 'Permissions Matrix', icon: Settings },
-    { to: '/company', label: 'Company Profile', icon: Globe },
-  ];
+  const isSuperAdmin = (user?.role === 'Super Admin');
+
+  const links = isSuperAdmin
+    ? [
+        { to: '/super-admin', label: 'Platform settings', icon: LayoutDashboard },
+        { to: '/audit', label: 'System Audit Logs', icon: FileText },
+      ]
+    : [
+        { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/employees', label: 'Employees', icon: Users },
+        { to: '/departments', label: 'Departments', icon: Building2 },
+        { to: '/attendance', label: 'Attendance', icon: CalendarCheck },
+        { to: '/leave', label: 'Leave', icon: CalendarOff },
+        { to: '/holidays', label: 'Holidays', icon: Calendar },
+        { to: '/shifts', label: 'Shifts', icon: Timer },
+        { to: '/payroll', label: 'Payroll Payouts', icon: CreditCard },
+        { to: '/payroll/structures', label: 'Salary Structures', icon: CreditCard },
+        { to: '/payroll/processing', label: 'Payroll Processing', icon: CreditCard },
+        { to: '/reimbursements', label: 'Reimbursements', icon: CreditCard },
+        { to: '/compensation', label: 'Compensation Revs', icon: CreditCard },
+        { to: '/announcements', label: 'Announcements', icon: Globe },
+        { to: '/audit', label: 'Audit Logs', icon: FileText },
+        { to: '/settings', label: 'Company Settings', icon: Settings },
+        { to: '/permissions', label: 'Permissions Matrix', icon: Settings },
+        { to: '/company', label: 'Company Profile', icon: Globe },
+      ];
 
   return (
     React.createElement(React.Fragment, null

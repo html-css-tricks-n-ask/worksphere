@@ -79,6 +79,19 @@ const seedDatabase = async () => {
     // 4. Hash passwords
     const adminHashed = await hashPassword('Pixel@123');
     const employeeHashed = await hashPassword('Employee@123');
+    const superAdminHashed = await hashPassword('SuperAdmin@123');
+
+    // 4.5 Super Admin User
+    await User.create({
+      firstName: 'System',
+      lastName: 'SuperAdmin',
+      email: 'superadmin@worksphere.com',
+      password: superAdminHashed,
+      role: 'Super Admin',
+      companyId,
+      status: 'Active',
+      emailVerified: true,
+    });
 
     // 5. Admin User & Profile
     const adminUser = await User.create({

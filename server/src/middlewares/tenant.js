@@ -8,10 +8,12 @@ export const tenantMiddleware = (
   res,
   next
 ) => {
-  if (req.user && req.user.companyId) {
+  if (req.user) {
     try {
-      const companyIdObj = new Types.ObjectId(req.user.companyId);
-      tenantStorage.run(companyIdObj, () => {
+      const companyIdObj = req.user.companyId ? new Types.ObjectId(req.user.companyId) : null;
+      const isSuperAdmin = req.user.role === 'Super Admin';
+      
+      tenantStorage.run({ companyId: companyIdObj, bypass: isSuperAdmin }, () => {
         next();
       });
     } catch (error) {

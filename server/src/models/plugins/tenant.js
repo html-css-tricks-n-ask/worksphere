@@ -18,7 +18,8 @@ export function tenantPlugin(schema) {
   // Automatically populate companyId from context before validation
   schema.pre('validate', function ( next) {
     if (this.isNew && !this.companyId) {
-      const companyId = tenantStorage.getStore();
+      const store = tenantStorage.getStore();
+      const companyId = store ? (store.companyId || store) : null;
       if (companyId) {
         this.companyId = companyId;
       }
@@ -28,10 +29,14 @@ export function tenantPlugin(schema) {
 
   // Automatically filter all find queries by the request-scoped companyId context
   const filterByCompanyContext = function ( next) {
-    const companyId = tenantStorage.getStore();
-    if (companyId) {
-      // Apply filter to current query
-      this.where({ companyId });
+    const store = tenantStorage.getStore();
+    if (store) {
+      const companyId = store.companyId || store;
+      const bypass = store.bypass || false;
+      // Skip query filtering if bypass is set to true (e.g. for Super Admins)
+      if (!bypass && companyId) {
+        this.where({ companyId });
+      }
     }
     next();
   };

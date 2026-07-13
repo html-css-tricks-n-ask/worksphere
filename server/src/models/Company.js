@@ -72,8 +72,25 @@ const companySchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['Active', 'Suspended'],
+      enum: ['Active', 'Suspended', 'Expired'],
       default: 'Active',
+    },
+    subscriptionPlan: {
+      type: String,
+      enum: ['Free', 'Basic', 'Premium', 'Enterprise'],
+      default: 'Free',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['Active', 'Suspended', 'Expired'],
+      default: 'Active',
+    },
+    maxEmployees: {
+      type: Number,
+      default: 50,
+    },
+    expiresAt: {
+      type: Date,
     },
     createdBy: {
       type: Schema.Types.ObjectId,

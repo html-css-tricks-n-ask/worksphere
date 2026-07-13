@@ -32,12 +32,14 @@ import AuditLogs from '../pages/AuditLogs';
 import Documents from '../pages/Documents';
 import Reports from '../pages/Reports';
 import Notifications from '../pages/Notifications';
-import Profile from '../pages/Profile';
-import CompanyProfile from '../pages/CompanyProfile';
+import { useSelector } from 'react-redux';
 import { Login, RegisterCompany, ForgotPassword, ResetPassword, VerifyEmail } from '../features/auth/index';
 import NotFound from '../pages/NotFound';
+import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 
 export const AppRoutes = () => {
+  const user = useSelector((state) => state.auth.user);
+
   return (
     React.createElement(Routes, null
       /* Public Auth Routes */
@@ -49,10 +51,16 @@ export const AppRoutes = () => {
 
       /* Authenticated Dashboard Shell Layout */
       , React.createElement(Route, { path: "/", element: React.createElement(AppLayout, null ),}
-        /* Redirect empty path to dashboard */
-        , React.createElement(Route, { index: true, element: React.createElement(Navigate, { to: "/dashboard", replace: true,} ),} )
+        /* Redirect empty path dynamically based on role */
+        , React.createElement(Route, {
+            index: true,
+            element: user?.role === 'Super Admin'
+              ? React.createElement(Navigate, { to: "/super-admin", replace: true })
+              : React.createElement(Navigate, { to: "/dashboard", replace: true })
+          })
 
         , React.createElement(Route, { path: "dashboard", element: React.createElement(Dashboard, null ),} )
+        , React.createElement(Route, { path: "super-admin", element: React.createElement(SuperAdminDashboard, null ),} )
 
         /* Employee directory routes */
         , React.createElement(Route, { path: "employees", element: React.createElement(EmployeeList, null ),} )
