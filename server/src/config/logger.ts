@@ -9,35 +9,38 @@ const logFormat = winston.format.printf(({ timestamp, level, message, ...meta })
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Combined log rotation config
-const combinedRotation = new DailyRotateFile({
-  filename: path.join('logs', 'combined-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d',
-  level: 'info',
+// Console transport (always active — works on Render, Docker, local)
+const consoleTransport = new winston.transports.Console({
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
+  ),
 });
 
-// Error log rotation config
-const errorRotation = new DailyRotateFile({
-  filename: path.join('logs', 'error-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d',
-  level: 'error',
-});
+// File transports — only in development (Render/cloud filesystems are read-only)
+const fileTransports: winston.transport[] = [];
 
-// Auth logs rotation config
-const authRotation = new DailyRotateFile({
-  filename: path.join('logs', 'auth-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d',
-  level: 'info',
-});
+if (!isProduction) {
+  fileTransports.push(
+    new DailyRotateFile({
+      filename: path.join('logs', 'combined-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d',
+      level: 'info',
+    }),
+    new DailyRotateFile({
+      filename: path.join('logs', 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d',
+      level: 'error',
+    })
+  );
+}
 
 export const logger = winston.createLogger({
   level: isProduction ? 'info' : 'debug',
@@ -46,36 +49,18 @@ export const logger = winston.createLogger({
     winston.format.json()
   ),
   transports: [
-    combinedRotation,
-    errorRotation,
+    consoleTransport,  // always log to console
+    ...fileTransports, // log to files only in dev
   ],
 });
 
-// If not in production, log to console with colors
-if (!isProduction) {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        logFormat
-      ),
-    })
-  );
-}
-
-// Custom log helpers
+// Auth log helper — writes to console (and files in dev)
 class AuthLogger {
   log(message: string, meta?: any) {
-    authRotation.write({
-      level: 'info',
-      message,
-      timestamp: new Date().toISOString(),
-      ...meta,
-    });
     logger.info(`[Auth] ${message}`, meta);
   }
 }
 
 export const authLogger = new AuthLogger();
 export default logger;
+
