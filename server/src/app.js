@@ -9,9 +9,11 @@ import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 // Configs and routes
 dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { swaggerSpec } from './config/swagger.js';
 import apiRouter from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
