@@ -5,7 +5,7 @@ import { logout } from '../redux/slices/authSlice.js';
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1',
   withCredentials: true,
-  timeout: 10000,
+  timeout: 60000, // 60s — handles Render.com cold-starts (free tier spins down after inactivity)
   headers: {
     'Content-Type': 'application/json',
   },

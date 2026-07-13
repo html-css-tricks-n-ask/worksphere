@@ -41,7 +41,11 @@ export const useLogin = () => {
 
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Invalid credentials.');
+      if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || !err.response) {
+        setError('Server is warming up — this may take up to 30 seconds on first load. Please try again.');
+      } else {
+        setError(err.response?.data?.message || 'Login failed. Invalid credentials.');
+      }
     } finally {
       setLoading(false);
     }
