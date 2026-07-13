@@ -6,7 +6,7 @@ export class DesignationRepository {
   }
 
   async findById(id) {
-    return Designation.findById(id);
+    return Designation.findById(id).populate('departmentId', 'name');
   }
 
   async findByTitle(title) {
@@ -14,7 +14,7 @@ export class DesignationRepository {
   }
 
   async update(id, data) {
-    return Designation.findByIdAndUpdate(id, data, { new: true });
+    return Designation.findByIdAndUpdate(id, data, { new: true }).populate('departmentId', 'name');
   }
 
   async softDelete(id) {
@@ -33,13 +33,7 @@ export class DesignationRepository {
     return designation;
   }
 
-  async findAll(params
-
-
-
-
-
-) {
+  async findAll(params) {
     const filter = {};
 
     if (params.search) {
@@ -60,6 +54,7 @@ export class DesignationRepository {
         .sort(sort)
         .skip(skip)
         .limit(params.limit)
+        .populate('departmentId', 'name')
         .exec(),
       Designation.countDocuments(filter).exec(),
     ]);

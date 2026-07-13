@@ -20,7 +20,7 @@ Here is a breakdown of the system design and implementation details:
 1. **Multi-Tenant Data Isolation**: Implemented a shared-database, scoped-document architecture. Using Node's `AsyncLocalStorage` and Mongoose query middleware, tenant context (`companyId`) is automatically injected into all query filters out-of-band, preventing data leaks.
 2. **Clean Architecture Boundary**: Followed a strict Controller-Service-Repository pattern. Decoupled Express HTTP controllers from core domain services and repositories to ensure database queries are isolated, easing testing and code maintenance.
 3. **Double Token Session Security**: Implemented Refresh Token Rotation (RTR). Access tokens are short-lived, while refresh tokens are stored in secure, HttpOnly, SameSite cookies to protect against XSS and CSRF attacks.
-4. **Context-Aware AI HR Assistant**: Built an AI chatbot that queries the active tenant's database context (active employee counts, leave trends, department salaries) and injects it into LLM prompts to answer user questions based on live database state.
+4. **Context-iare AI HR Assistant**: Built an AI chatbot that queries the active tenant's database context (active employee counts, leave trends, department salaries) and injects it into LLM prompts to answer user questions based on live database state.
 
 ### 🛠️ Technical Implementation Details
 - **Frontend State domains**: Managed client state using **Redux Toolkit** (auth tokens, global UI state) and **TanStack React Query v5** (server state caching, window re-focus sync, optimistic UI updates).

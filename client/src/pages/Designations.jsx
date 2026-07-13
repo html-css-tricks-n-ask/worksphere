@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../components/ui/confirm-dialog';
 
 export const Designations = () => {
   const [designations, setDesignations] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -43,8 +44,18 @@ export const Designations = () => {
     }
   };
 
+  const loadDepartments = async () => {
+    try {
+      const response = await axiosInstance.get('/departments');
+      setDepartments(response.data.data);
+    } catch (err) {
+      // Ignore department fetch errors
+    }
+  };
+
   useEffect(() => {
     loadData();
+    loadDepartments();
   }, [search, page]);
 
   const handleCreate = async (data) => {
@@ -88,6 +99,7 @@ export const Designations = () => {
     setValue('title', desig.title);
     setValue('level', desig.level || '');
     setValue('description', desig.description || '');
+    setValue('departmentId', _optionalChain([desig, 'access', _ => _.departmentId, 'optionalAccess', _2 => _2._id]) || desig.departmentId || '');
     setEditOpen(true);
   };
 
@@ -136,6 +148,7 @@ export const Designations = () => {
               , React.createElement(TableRow, null
                 , React.createElement(TableHead, null, "Designation Title" )
                 , React.createElement(TableHead, null, "Grade Level" )
+                , React.createElement(TableHead, null, "Department" )
                 , React.createElement(TableHead, null, "Description")
                 , React.createElement(TableHead, { className: "text-right",}, "Actions")
               )
@@ -143,13 +156,13 @@ export const Designations = () => {
             , React.createElement(TableBody, null
               , loading ? (
                 React.createElement(TableRow, null
-                  , React.createElement(TableCell, { colSpan: 4, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "Loading designations matrix..."
+                  , React.createElement(TableCell, { colSpan: 5, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "Loading designations matrix..."
 
                   )
                 )
               ) : designations.length === 0 ? (
                 React.createElement(TableRow, null
-                  , React.createElement(TableCell, { colSpan: 4, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "No designations found."
+                  , React.createElement(TableCell, { colSpan: 5, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "No designations found."
 
                   )
                 )
@@ -164,6 +177,9 @@ export const Designations = () => {
                       , React.createElement(Badge, { variant: "outline", className: "text-xs bg-muted/30" ,}
                         , desig.level || 'N/A'
                       )
+                    )
+                    , React.createElement(TableCell, { className: "text-xs font-semibold text-muted-foreground" ,}
+                      , _optionalChain([desig, 'access', _3 => _3.departmentId, 'optionalAccess', _4 => _4.name]) || 'N/A'
                     )
                     , React.createElement(TableCell, { className: "text-xs max-w-xs truncate text-muted-foreground"   ,}, desig.description || 'No description')
                     , React.createElement(TableCell, { className: "text-right",}
@@ -211,6 +227,17 @@ export const Designations = () => {
             , React.createElement(Input, { ...register('level'), placeholder: "e.g. L1, L2, L3"   ,} )
           )
           , React.createElement('div', { className: "space-y-1.5",}
+            , React.createElement('label', { className: "text-xs font-semibold text-muted-foreground"  ,}, "Department Mapping" )
+            , React.createElement('select', {
+                ...register('departmentId', { required: true }),
+                className: "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" ,
+                required: true
+              }
+              , React.createElement('option', { value: "" }, "Select a department...")
+              , departments.map(d => React.createElement('option', { key: d.id || d._id, value: d.id || d._id }, d.name))
+            )
+          )
+          , React.createElement('div', { className: "space-y-1.5",}
             , React.createElement('label', { className: "text-xs font-semibold text-muted-foreground"  ,}, "Description")
             , React.createElement('textarea', {
               ...register('description'),
@@ -239,6 +266,17 @@ export const Designations = () => {
           , React.createElement('div', { className: "space-y-1.5",}
             , React.createElement('label', { className: "text-xs font-semibold text-muted-foreground"  ,}, "Grade Level" )
             , React.createElement(Input, { ...register('level'), placeholder: "e.g. L1, L2"  ,} )
+          )
+          , React.createElement('div', { className: "space-y-1.5",}
+            , React.createElement('label', { className: "text-xs font-semibold text-muted-foreground"  ,}, "Department Mapping" )
+            , React.createElement('select', {
+                ...register('departmentId', { required: true }),
+                className: "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" ,
+                required: true
+              }
+              , React.createElement('option', { value: "" }, "Select a department...")
+              , departments.map(d => React.createElement('option', { key: d.id || d._id, value: d.id || d._id }, d.name))
+            )
           )
           , React.createElement('div', { className: "space-y-1.5",}
             , React.createElement('label', { className: "text-xs font-semibold text-muted-foreground"  ,}, "Description")

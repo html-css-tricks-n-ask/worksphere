@@ -26,6 +26,11 @@ const designationSchema = new Schema(
       type: String,
       trim: true,
     },
+    departmentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
+      required: [true, 'Department mapping is required.'],
+    },
   },
   baseSchemaOptions
 );
