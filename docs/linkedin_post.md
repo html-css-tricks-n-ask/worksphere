@@ -12,7 +12,7 @@ This document contains a professional LinkedIn project post designed to highligh
 
 🚀 I just completed **WorkSphere**, a production-ready, multi-tenant Employee Management & HRMS SaaS platform! 
 
-Built with the **MERN Stack** (MongoDB Atlas, Express, React, Node) and **TypeScript**, WorkSphere is designed to demonstrate enterprise-level frontend and backend architecture.
+Built with the **MERN Stack** (MongoDB Atlas, Express, React, Node) and **JavaScript**, WorkSphere is designed to demonstrate enterprise-level frontend and backend architecture.
 
 Here is a breakdown of the system design and implementation details:
 
@@ -40,4 +40,4 @@ Check out the full repository and architecture documentation below! 👇
 🔗 **GitHub Repository**: [Your GitHub Link Here]
 🔗 **Live Project URL**: [Your Live Vercel Link Here]
 
-#systemdesign #webdevelopment #mernstack #typescript #softwareengineering #reactjs #nodejs #mongodb #saas #programming
+#systemdesign #webdevelopment #mernstack #javascript #js #softwareengineering #reactjs #nodejs #mongodb #saas #programming
