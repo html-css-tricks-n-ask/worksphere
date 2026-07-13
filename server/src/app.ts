@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
+import path from 'path';
 
 // Configs and routes
 dotenv.config();
@@ -14,6 +15,7 @@ import { swaggerSpec } from './config/swagger.js';
 import apiRouter from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { ApiError } from './utils/responseWrapper.js';
+
 
 const app = express();
 
@@ -73,10 +75,25 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Base API v1 Routes
 app.use('/api/v1', apiRouter);
 
-// Handle undefined routes (404)
-app.use((req, res, next) => {
-  next(new ApiError(404, `Route ${req.originalUrl} (${req.method}) not found`));
-});
+// ─── Serve React SPA in Production ─────────────────────────────────────────
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the built React client
+  const clientBuildPath = path.join(__dirname, 'public');
+  app.use(express.static(clientBuildPath));
+
+  // SPA Fallback: for any non-API route, send index.html so React Router works
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/api-docs')) {
+      return next(new ApiError(404, `Route ${req.originalUrl} (${req.method}) not found`));
+    }
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+} else {
+  // Handle undefined API routes in development (404)
+  app.use((req, res, next) => {
+    next(new ApiError(404, `Route ${req.originalUrl} (${req.method}) not found`));
+  });
+}
 
 // Global Error handling middleware
 app.use(errorHandler);
