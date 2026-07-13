@@ -9,12 +9,9 @@ import Employee from '../models/Employee.js';
 
 export const checkIn = asyncHandler(async (req, res) => {
   const parsed = checkInSchema.parse(req.body);
-  const { userId, companyId } = req.user;
+  const { companyId } = req.user;
 
-  const emp = await Employee.findOne({ userId, companyId });
-  if (!emp) {
-    throw new ApiError(400, 'Employee profile not linked to your account.');
-  }
+  const emp = req.employee;
   const employeeId = emp._id.toString();
 
   // Prevent double check-in on same day
@@ -42,12 +39,9 @@ export const checkIn = asyncHandler(async (req, res) => {
 
 export const checkOut = asyncHandler(async (req, res) => {
   const parsed = checkOutSchema.parse(req.body);
-  const { userId, companyId } = req.user;
+  const { companyId } = req.user;
 
-  const emp = await Employee.findOne({ userId, companyId });
-  if (!emp) {
-    throw new ApiError(400, 'Employee profile not linked to your account.');
-  }
+  const emp = req.employee;
   const employeeId = emp._id.toString();
 
   const existing = await attendanceRepository.findTodayLog(employeeId, companyId.toString());
@@ -159,12 +153,7 @@ export const getAttendanceStats = asyncHandler(async (req, res) => {
 });
 
 export const getMyAttendance = asyncHandler(async (req, res) => {
-  const { userId, companyId } = req.user;
-
-  const emp = await Employee.findOne({ userId, companyId });
-  if (!emp) {
-    throw new ApiError(400, 'Employee profile not linked to your account.');
-  }
+  const emp = req.employee;
   const employeeId = emp._id.toString();
 
   const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;

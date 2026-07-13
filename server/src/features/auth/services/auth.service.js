@@ -9,9 +9,9 @@ import {
   verifyRefreshToken,
 } from '../../../utils/jwt.js';
 import { emailService } from '../../../services/email/email.service.js';
-
-
 import { logger } from '../../../config/logger.js';
+import { employeeRepository } from '../../../repositories/employee.repository.js';
+import { employmentHistoryRepository } from '../../../repositories/employmentHistory.repository.js';
 
 /**
  * Enterprise service coordinating authentication validation, credentials sync,
@@ -74,6 +74,27 @@ class AuthService {
 
     // Link Company Creator
     await companyRepository.update(company.id, { createdBy: admin._id  });
+
+    // Create Employee Profile for the Company Admin so they are correctly linked
+    const employee = await employeeRepository.create({
+      employeeId: 'EMP001',
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      email: admin.email,
+      phone: admin.phone,
+      userId: admin._id,
+      companyId: company._id,
+      status: 'Active',
+    });
+
+    // Track initial career placement in timeline
+    await employmentHistoryRepository.create({
+      employeeId: employee._id,
+      type: 'Other',
+      description: 'Joined the company as the Workspace System Administrator.',
+      date: new Date(),
+      companyId: company._id,
+    });
 
     // Send Verification Email in the background to avoid blocking request thread on slow SMTP setups
     emailService.sendVerificationEmail(

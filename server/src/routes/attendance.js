@@ -7,7 +7,7 @@ import {
   getAttendanceStats,
   getMyAttendance,
 } from '../controllers/attendance.controller.js';
-import { authenticateUser } from '../middlewares/auth.js';
+import { authenticateUser, ensureEmployeeLinked } from '../middlewares/auth.js';
 import { tenantMiddleware } from '../middlewares/tenant.js';
 import { auditMiddleware } from '../middlewares/audit.middleware.js';
 
@@ -25,7 +25,7 @@ router.use(tenantMiddleware);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/me', getMyAttendance);
+router.get('/me', ensureEmployeeLinked, getMyAttendance);
 
 /**
  * @openapi
@@ -58,7 +58,7 @@ router.get('/', getAttendanceLogs);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/check-in', auditMiddleware('ATTENDANCE_CHECKIN'), checkIn);
+router.post('/check-in', ensureEmployeeLinked, auditMiddleware('ATTENDANCE_CHECKIN'), checkIn);
 
 /**
  * @openapi
@@ -69,7 +69,7 @@ router.post('/check-in', auditMiddleware('ATTENDANCE_CHECKIN'), checkIn);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/check-out', auditMiddleware('ATTENDANCE_CHECKOUT'), checkOut);
+router.post('/check-out', ensureEmployeeLinked, auditMiddleware('ATTENDANCE_CHECKOUT'), checkOut);
 
 /**
  * @openapi

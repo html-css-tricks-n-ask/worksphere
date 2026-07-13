@@ -7,7 +7,7 @@ import {
   getMyLeaves,
   getLeaveBalances,
 } from '../controllers/leave.controller.js';
-import { authenticateUser } from '../middlewares/auth.js';
+import { authenticateUser, ensureEmployeeLinked } from '../middlewares/auth.js';
 import { tenantMiddleware } from '../middlewares/tenant.js';
 import { auditMiddleware } from '../middlewares/audit.middleware.js';
 
@@ -25,7 +25,7 @@ router.use(tenantMiddleware);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/me', getMyLeaves);
+router.get('/me', ensureEmployeeLinked, getMyLeaves);
 
 /**
  * @openapi
@@ -36,7 +36,7 @@ router.get('/me', getMyLeaves);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/balances', getLeaveBalances);
+router.get('/balances', ensureEmployeeLinked, getLeaveBalances);
 
 /**
  * @openapi
@@ -53,7 +53,7 @@ router.get('/balances', getLeaveBalances);
  *       - bearerAuth: []
  */
 router.get('/', getLeaves);
-router.post('/', auditMiddleware('APPLY_LEAVE'), applyLeave);
+router.post('/', ensureEmployeeLinked, auditMiddleware('APPLY_LEAVE'), applyLeave);
 
 /**
  * @openapi

@@ -14,13 +14,7 @@ import { Types } from 'mongoose';
 
 export const createReimbursement = asyncHandler(async (req, res) => {
   const parsed = createReimbursementSchema.parse(req.body);
-  const { userId, companyId } = req.user;
-
-  // Resolve matching employee profile
-  const emp = await Employee.findOne({ userId, companyId });
-  if (!emp) {
-    throw new ApiError(400, 'Employee profile not linked to your account.');
-  }
+  const emp = req.employee;
 
   const claim = await reimbursementRepository.create({
     ...parsed,
@@ -42,10 +36,7 @@ export const getReimbursements = asyncHandler(async (req, res) => {
   // If role is basic Employee, only return their own claims
   let employeeId;
   if (role === 'Employee') {
-    const emp = await Employee.findOne({ userId, companyId });
-    if (emp) {
-      employeeId = emp._id.toString();
-    }
+    employeeId = req.employee._id.toString();
   }
 
   const result = await reimbursementRepository.findAll({
