@@ -1,0 +1,149 @@
+
+import { authService } from "../services/auth.service.js";
+import { ApiResponse, ApiError } from "../../../utils/responseWrapper.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import {
+  registerCompanySchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../validators/auth.validator.js";
+
+const COOKIE_NAME = "worksphere_refresh_token";
+
+/**
+ * Configure standard HTTPOnly cookies parameters.
+ */
+const setRefreshTokenCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === "production";
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/api/v1/auth",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
+/**
+ * Register a new company and administrator profile.
+ */
+export const register = asyncHandler(async (req, res) => {
+  const parsed = registerCompanySchema.parse(req.body);
+  const result = await authService.registerCompany(
+    parsed.company,
+    parsed.admin,
+  );
+  res
+    .status(201)
+    .json(
+      new ApiResponse(
+        201,
+        result,
+        "Company registered successfully. Please verify your email.",
+      ),
+    );
+});
+
+/**
+ * Authenticate credentials, set refresh token cookie, and return access token details.
+ */
+export const login = asyncHandler(async (req, res) => {
+  const parsed = loginSchema.parse(req.body);
+  const result = await authService.login(parsed.email, parsed.password);
+
+  // Set HttpOnly refresh token cookie
+  setRefreshTokenCookie(res, result.refreshToken);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { accessToken: result.accessToken, user: result.user },
+        "Logged in successfully.",
+      ),
+    );
+});
+
+/**
+ * Logout authenticated user sessions by clearing authentication cookies parameters.
+ */
+export const logout = asyncHandler(async (req, res) => {
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/api/v1/auth",
+  });
+  res.status(200).json(new ApiResponse(200, null, "Logged out successfully."));
+});
+
+/**
+ * Rotate access tokens using current cookies or body credentials parameters.
+ */
+export const refresh = asyncHandler(async (req, res) => {
+  // Try loading from cookie first, fallback to request body
+  const token = req.cookies[COOKIE_NAME] || req.body.refreshToken;
+
+  if (!token) {
+    throw new ApiError(401, "Refresh token not found.");
+  }
+
+  const result = await authService.rotateAccessToken(token);
+  res
+    .status(200)
+    .json(new ApiResponse(200, result, "Access token refreshed successfully."));
+});
+
+/**
+ * Verify registered administrator email address using recovery token parameters.
+ */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const token = String(req.query.token || req.body.token);
+  if (!token) {
+    throw new ApiError(400, "Verification token is required.");
+  }
+  const result = await authService.verifyEmail(token);
+  res.status(200).json(new ApiResponse(200, null, result.message));
+});
+
+/**
+ * Resend verification email links to unverified administrator users.
+ */
+export const resendVerification = asyncHandler(
+  async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      throw new ApiError(400, "Email address is required.");
+    }
+    const result = await authService.resendVerificationEmail(email);
+    res.status(200).json(new ApiResponse(200, null, result.message));
+  },
+);
+
+/**
+ * Request password recovery email validation parameters.
+ */
+export const forgotPassword = asyncHandler(
+  async (req, res) => {
+    const parsed = forgotPasswordSchema.parse(req.body);
+    const result = await authService.forgotPassword(parsed.email);
+    res.status(200).json(new ApiResponse(200, null, result.message));
+  },
+);
+
+/**
+ * Reset user password configurations.
+ */
+export const resetPassword = asyncHandler(
+  async (req, res) => {
+    const parsed = resetPasswordSchema.parse(req.body);
+    const result = await authService.resetPassword(
+      parsed.token,
+      parsed.password,
+    );
+    res.status(200).json(new ApiResponse(200, null, result.message));
+  },
+);
