@@ -11,6 +11,7 @@ import {
 import { emailService } from '../../../services/email/email.service.js';
 import { ICompany } from '../../../models/Company.js';
 import { IUser } from '../../../models/User.js';
+import { logger } from '../../../config/logger.js';
 
 /**
  * Enterprise service coordinating authentication validation, credentials sync,
@@ -74,12 +75,14 @@ class AuthService {
     // Link Company Creator
     await companyRepository.update(company.id, { createdBy: admin._id as any });
 
-    // Send Verification Email
-    await emailService.sendVerificationEmail(
+    // Send Verification Email in the background to avoid blocking request thread on slow SMTP setups
+    emailService.sendVerificationEmail(
       admin.email,
       `${admin.firstName} ${admin.lastName}`,
       verificationToken
-    );
+    ).catch((err) => {
+      logger.error(`[BACKGROUND EMAIL ERROR] Failed to send registration verification email to ${admin.email}: ${err.message}`);
+    });
 
     return {
       company: { id: company.id, name: company.name, slug: company.slug },
@@ -157,12 +160,14 @@ class AuthService {
     const company = await companyRepository.findById(user.companyId.toString());
     const companyName = company ? company.name : 'WorkSphere';
 
-    // Send Welcome Email
-    await emailService.sendWelcomeEmail(
+    // Send Welcome Email in background
+    emailService.sendWelcomeEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
       companyName
-    );
+    ).catch((err) => {
+      logger.error(`[BACKGROUND EMAIL ERROR] Failed to send welcome email to ${user.email}: ${err.message}`);
+    });
 
     return { message: 'Email address verified successfully.' };
   }
@@ -188,11 +193,14 @@ class AuthService {
     user.verificationExpires = verificationExpires;
     await user.save();
 
-    await emailService.sendVerificationEmail(
+    // Send Verification Email in background
+    emailService.sendVerificationEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
       verificationToken
-    );
+    ).catch((err) => {
+      logger.error(`[BACKGROUND EMAIL ERROR] Failed to resend verification email to ${user.email}: ${err.message}`);
+    });
 
     return { message: 'Verification email resent successfully.' };
   }
@@ -217,11 +225,14 @@ class AuthService {
     user.resetPasswordExpires = resetPasswordExpires;
     await user.save();
 
-    await emailService.sendResetPasswordEmail(
+    // Send Reset Email in background
+    emailService.sendResetPasswordEmail(
       user.email,
       `${user.firstName} ${user.lastName}`,
       resetPasswordToken
-    );
+    ).catch((err) => {
+      logger.error(`[BACKGROUND EMAIL ERROR] Failed to send password reset email to ${user.email}: ${err.message}`);
+    });
 
     return { message: 'Password reset link sent successfully.' };
   }
