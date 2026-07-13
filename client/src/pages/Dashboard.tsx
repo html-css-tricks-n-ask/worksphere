@@ -31,20 +31,74 @@ export const Dashboard: React.FC = () => {
     departmentCount: 0,
     newEmployeesThisMonth: 0,
   });
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWidgets = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const response = await axiosInstance.get('/employees/widgets');
-        setWidgets(response.data.data);
+        const [widgetRes, auditRes] = await Promise.all([
+          axiosInstance.get('/employees/widgets'),
+          axiosInstance.get('/audit?limit=5')
+        ]);
+        setWidgets(widgetRes.data.data);
+
+        // Map raw backend logs to expected table structure
+        const mappedLogs = (auditRes.data?.data?.logs || []).map((log: any) => {
+          let actionLabel = log.action;
+          if (log.action === 'CREATE_EMPLOYEE') actionLabel = 'Registered Employee';
+          else if (log.action === 'UPDATE_EMPLOYEE') actionLabel = 'Updated Employee Profile';
+          else if (log.action === 'DELETE_EMPLOYEE') actionLabel = 'Terminated Employee';
+          else if (log.action === 'APPLY_LEAVE') actionLabel = 'Submitted Leave Request';
+          else if (log.action === 'UPDATE_LEAVE_STATUS') actionLabel = 'Processed Leave Status';
+          else if (log.action === 'CREATE_DEPARTMENT') actionLabel = 'Created Department';
+          else if (log.action === 'ATTENDANCE_CHECKIN') actionLabel = 'Checked In';
+          else if (log.action === 'ATTENDANCE_CHECKOUT') actionLabel = 'Checked Out';
+          else {
+            actionLabel = log.action.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+          }
+
+          let badgeVariant: 'success' | 'warning' | 'secondary' | 'destructive' = 'success';
+          if (log.action.includes('DELETE') || log.action.includes('REJECT')) {
+            badgeVariant = 'destructive';
+          } else if (log.action.includes('UPDATE') || log.action.includes('EDIT')) {
+            badgeVariant = 'secondary';
+          }
+
+          let displayTime = 'Recently';
+          try {
+            const date = new Date(log.timestamp);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+
+            if (diffMins < 60) {
+              displayTime = diffMins <= 1 ? 'Just now' : `${diffMins}m ago`;
+            } else if (diffMins < 1440) {
+              displayTime = `${Math.floor(diffMins / 60)}h ago`;
+            } else {
+              displayTime = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            }
+          } catch (e) {}
+
+          return {
+            id: log._id,
+            name: log.actorId ? `${log.actorId.firstName} ${log.actorId.lastName}` : 'System',
+            action: actionLabel,
+            time: displayTime,
+            status: log.action.includes('DELETE') ? 'Deleted' : log.action.includes('UPDATE') ? 'Updated' : 'Success',
+            variant: badgeVariant
+          };
+        });
+
+        setActivities(mappedLogs);
       } catch (err) {
-        // Ignore dashboard stats errors, fallback to zeros
+        // Ignore dashboard stats errors, fallback to empty lists/zeros
       } finally {
         setLoading(false);
       }
     };
-    fetchWidgets();
+    fetchDashboardData();
   }, []);
 
   const stats = [
@@ -52,12 +106,6 @@ export const Dashboard: React.FC = () => {
     { label: 'Active Employees', value: widgets.activeEmployees, desc: ' SSO Login enabled', icon: UserCheck, color: 'text-emerald-500' },
     { label: 'Inactive Employees', value: widgets.inactiveEmployees, desc: 'SSO Login disabled', icon: UserX, color: 'text-rose-500' },
     { label: 'Total Departments', value: widgets.departmentCount, desc: 'Functional divisions', icon: Layers, color: 'text-violet-500' },
-  ];
-
-  const recentActivities = [
-    { id: '1', name: 'John Doe', action: 'Joined Company', time: 'Recently', status: 'Success' },
-    { id: '2', name: 'Jane Smith', action: 'Transferred Department', time: 'Recently', status: 'Info' },
-    { id: '3', name: 'Robert Johnson', action: 'SSO Profile Linked', time: 'Recently', status: 'Success' },
   ];
 
   return (
@@ -129,7 +177,7 @@ export const Dashboard: React.FC = () => {
               <CardTitle>Recent Actions</CardTitle>
               <CardDescription>Log of recently processed employees</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="gap-1 text-xs self-start sm:self-auto" onClick={() => navigate('/employees')}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs self-start sm:self-auto" onClick={() => navigate('/audit')}>
               View Registry <ArrowUpRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -144,14 +192,14 @@ export const Dashboard: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentActivities.map((activity) => (
+                {activities.map((activity) => (
                   <TableRow key={activity.id}>
                     <TableCell className="font-medium text-xs">{activity.name}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{activity.action}</TableCell>
                     <TableCell className="text-xs">{activity.time}</TableCell>
                     <TableCell className="text-right">
                       <Badge
-                        variant={activity.status === 'Success' ? 'success' : 'secondary'}
+                        variant={activity.variant}
                         className="text-[10px]"
                       >
                         {activity.status}
@@ -159,6 +207,13 @@ export const Dashboard: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {activities.length === 0 && (
+                  <TableRow>
+                    <td colSpan={4} className="py-8 text-center text-xs text-muted-foreground">
+                      No recent activities recorded for this workspace.
+                    </td>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

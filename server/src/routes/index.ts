@@ -18,6 +18,7 @@ import compensationRouter from './compensation.js';
 import settingsRouter from './settings.js';
 import notificationsRouter from './notifications.js';
 import aiRouter from './ai.js';
+import auditRouter from './audit.js';
 
 const router = Router();
 
@@ -40,5 +41,6 @@ router.use('/compensation', compensationRouter);
 router.use('/settings', settingsRouter);
 router.use('/notifications', notificationsRouter);
 router.use('/ai', aiRouter);
+router.use('/audit', auditRouter);
 
 export default router;
