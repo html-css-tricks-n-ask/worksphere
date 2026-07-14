@@ -6,6 +6,7 @@ import {
   updateLeaveStatus,
   getMyLeaves,
   getLeaveBalances,
+  getPendingLeaves,
 } from '../controllers/leave.controller.js';
 import { authenticateUser, ensureEmployeeLinked } from '../middlewares/auth.js';
 import { tenantMiddleware } from '../middlewares/tenant.js';
@@ -15,6 +16,8 @@ const router = Router();
 
 router.use(authenticateUser);
 router.use(tenantMiddleware);
+
+router.get('/approvals/pending', ensureEmployeeLinked, getPendingLeaves);
 
 /**
  * @openapi

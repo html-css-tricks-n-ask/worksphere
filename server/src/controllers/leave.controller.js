@@ -42,6 +42,14 @@ export const applyLeave = asyncHandler(async (req, res) => {
     current.setDate(current.getDate() + 1);
   }
 
+  // Resolve initial approval stage based on employee hierarchy
+  let initialStage = 'HR Manager';
+  if (emp.professionalInfo && emp.professionalInfo.teamLeadId) {
+    initialStage = 'Team Lead';
+  } else if (emp.professionalInfo && emp.professionalInfo.managerId) {
+    initialStage = 'Department Manager';
+  }
+
   const leave = await leaveRepository.create({
     employeeId: employeeId ,
     companyId: companyId ,
@@ -52,6 +60,8 @@ export const applyLeave = asyncHandler(async (req, res) => {
     reason: parsed.reason,
     attachment: parsed.attachment,
     status: 'Pending',
+    currentStage: initialStage,
+    approvals: []
   });
 
   notificationService.send({
@@ -112,42 +122,98 @@ export const getLeaveById = asyncHandler(async (req, res) => {
 
 export const updateLeaveStatus = asyncHandler(async (req, res) => {
   const parsed = updateLeaveStatusSchema.parse(req.body);
+  const approver = req.employee;
 
-  const existing = await leaveRepository.findById(req.params.id);
-  if (!existing) {
+  const leave = await Leave.findById(req.params.id);
+  if (!leave) {
     throw new ApiError(404, 'Leave request not found.');
   }
 
-  if (existing.status !== 'Pending') {
-    throw new ApiError(400, `Cannot update a leave that is already "${existing.status}".`);
+  if (leave.status !== 'Pending') {
+    throw new ApiError(400, `Cannot update a leave that is already "${leave.status}".`);
   }
 
-  const updatedLeave = await leaveRepository.update(req.params.id, {
-    status: parsed.status,
-    approvedBy: req.user._id ,
-    approvedAt: new Date(),
-  });
+  const submitter = await Employee.findById(leave.employeeId);
+  if (!submitter) {
+    throw new ApiError(404, 'Submitter profile not found.');
+  }
+
+  const comments = parsed.comments || '';
+
+  // Process Stage Actions
+  if (leave.currentStage === 'Team Lead') {
+    if (!submitter.professionalInfo?.teamLeadId || submitter.professionalInfo.teamLeadId.toString() !== approver._id.toString()) {
+      throw new ApiError(403, 'You are not the designated Team Lead for this request.');
+    }
+    
+    if (parsed.status === 'Rejected') {
+      leave.status = 'Rejected';
+    } else {
+      // Progress stage
+      leave.currentStage = submitter.professionalInfo.managerId ? 'Department Manager' : 'HR Manager';
+    }
+    leave.approvals.push({
+      approverId: approver._id,
+      role: 'Team Lead',
+      status: parsed.status,
+      comments,
+      actionedAt: new Date()
+    });
+  } else if (leave.currentStage === 'Department Manager') {
+    if (!submitter.professionalInfo?.managerId || submitter.professionalInfo.managerId.toString() !== approver._id.toString()) {
+      throw new ApiError(403, 'You are not the designated Department Manager for this request.');
+    }
+
+    if (parsed.status === 'Rejected') {
+      leave.status = 'Rejected';
+    } else {
+      leave.currentStage = 'HR Manager';
+    }
+    leave.approvals.push({
+      approverId: approver._id,
+      role: 'Department Manager',
+      status: parsed.status,
+      comments,
+      actionedAt: new Date()
+    });
+  } else if (leave.currentStage === 'HR Manager') {
+    if (req.user.role !== 'HR' && req.user.role !== 'Company Admin') {
+      throw new ApiError(403, 'Only HR Managers or Company Admins can perform final approval.');
+    }
+
+    leave.status = parsed.status; // Approved or Rejected
+    leave.approvedBy = req.user._id || req.user.userId;
+    leave.approvedAt = new Date();
+    leave.approvals.push({
+      approverId: approver._id,
+      role: 'HR Manager',
+      status: parsed.status,
+      comments,
+      actionedAt: new Date()
+    });
+  }
+
+  await leave.save();
 
   // Notify the employee
-  const employee = existing.employeeId ;
-  const employeeEmail = _optionalChain([employee, 'optionalAccess', _ => _.email]) || '';
-  const employeeName = _optionalChain([employee, 'optionalAccess', _2 => _2.firstName]) || 'Team Member';
+  const employeeEmail = submitter.email || '';
+  const employeeName = submitter.firstName || 'Team Member';
 
   if (employeeEmail) {
     notificationService.send({
       toEmail: employeeEmail,
       toName: employeeName,
-      event: parsed.status === 'Approved' ? 'LEAVE_APPROVED' : 'LEAVE_REJECTED',
+      event: leave.status === 'Approved' ? 'LEAVE_APPROVED' : leave.status === 'Rejected' ? 'LEAVE_REJECTED' : 'LEAVE_APPLIED',
       meta: {
-        leaveType: existing.leaveType,
-        startDate: existing.startDate.toDateString(),
-        endDate: existing.endDate.toDateString(),
-        totalDays: existing.totalDays,
+        leaveType: leave.leaveType,
+        startDate: leave.startDate.toDateString(),
+        endDate: leave.endDate.toDateString(),
+        totalDays: leave.totalDays,
       },
     });
   }
 
-  res.status(200).json(new ApiResponse(200, updatedLeave, `Leave request ${parsed.status.toLowerCase()} successfully.`));
+  res.status(200).json(new ApiResponse(200, leave, `Leave request ${parsed.status.toLowerCase()} successfully.`));
 });
 
 export const getMyLeaves = asyncHandler(async (req, res) => {
@@ -197,4 +263,56 @@ export const getLeaveBalances = asyncHandler(async (req, res) => {
 
   const balances = await leaveRepository.getBalances(employeeId.toString(), companyId.toString());
   res.status(200).json(new ApiResponse(200, balances, 'Leave balances fetched successfully.'));
+});
+
+export const getPendingLeaves = asyncHandler(async (req, res) => {
+  const { role } = req.user;
+  const emp = req.employee;
+  const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
+  const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 10;
+  const skip = (page - 1) * limit;
+
+  let filter = { status: 'Pending' };
+
+  if (role === 'Super Admin') {
+    // Super Admin sees all
+  } else if (role === 'Company Admin' || role === 'HR') {
+    filter.currentStage = 'HR Manager';
+  } else {
+    // Team Lead or Department Manager
+    const supervised = await Employee.find({
+      $or: [
+        { 'professionalInfo.teamLeadId': emp._id },
+        { 'professionalInfo.managerId': emp._id }
+      ]
+    });
+    const leadEmps = supervised.filter(e => _optionalChain([e, 'access', _3 => _3.professionalInfo, 'optionalAccess', _4 => _4.teamLeadId, 'optionalAccess', _5 => _5.toString])() === emp._id.toString()).map(e => e._id);
+    const mgrEmps = supervised.filter(e => _optionalChain([e, 'access', _6 => _6.professionalInfo, 'optionalAccess', _7 => _7.managerId, 'optionalAccess', _8 => _8.toString])() === emp._id.toString()).map(e => e._id);
+
+    filter.$or = [
+      { currentStage: 'Team Lead', employeeId: { $in: leadEmps } },
+      { currentStage: 'Department Manager', employeeId: { $in: mgrEmps } }
+    ];
+  }
+
+  const [leaves, total] = await Promise.all([
+    Leave.find(filter)
+      .populate('employeeId', 'firstName lastName employeeId email professionalInfo')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec(),
+    Leave.countDocuments(filter).exec(),
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        leaves,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+      },
+      'Pending leave approvals fetched successfully.'
+    )
+  );
 });

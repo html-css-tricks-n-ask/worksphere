@@ -40,6 +40,7 @@ import Profile from '../pages/Profile';
 import CompanyProfile from '../pages/CompanyProfile';
 import Locations from '../pages/Locations';
 import Teams from '../pages/Teams';
+import ApprovalInbox from '../pages/ApprovalInbox';
 
 export const AppRoutes = () => {
   const user = useSelector((state) => state.auth.user);
@@ -81,6 +82,7 @@ export const AppRoutes = () => {
         /* Workforce Management routes */
         , React.createElement(Route, { path: "attendance", element: React.createElement(Attendance, null ),} )
         , React.createElement(Route, { path: "leave", element: React.createElement(Leave, null ),} )
+        , React.createElement(Route, { path: "approval-inbox", element: React.createElement(ApprovalInbox, null ),} )
         , React.createElement(Route, { path: "holidays", element: React.createElement(Holidays, null ),} )
         , React.createElement(Route, { path: "shifts", element: React.createElement(Shifts, null ),} )
 

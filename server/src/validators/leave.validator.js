@@ -23,6 +23,7 @@ export const applyLeaveSchema = z
 
 export const updateLeaveStatusSchema = z.object({
   status: z.enum(['Approved', 'Rejected', 'Cancelled']),
+  comments: z.string().optional(),
 });
 
  

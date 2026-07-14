@@ -13,5 +13,5 @@ export const updateReimbursementSchema = createReimbursementSchema.partial();
 
 export const approveReimbursementSchema = z.object({
   status: z.enum(['Approved', 'Rejected']),
-  role: z.enum(['Manager', 'HR']),
+  comments: z.string().optional(),
 });

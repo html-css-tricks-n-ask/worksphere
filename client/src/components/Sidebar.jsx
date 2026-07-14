@@ -12,6 +12,7 @@ import {
   Globe,
   Timer,
   Calendar,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { useSelector } from 'react-redux';
@@ -39,6 +40,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { to: '/teams', label: 'Teams & Groups', icon: Users },
         { to: '/attendance', label: 'Attendance', icon: CalendarCheck },
         { to: '/leave', label: 'Leave', icon: CalendarOff },
+        { to: '/approval-inbox', label: 'Approval Inbox', icon: CheckSquare },
         { to: '/holidays', label: 'Holidays', icon: Calendar },
         { to: '/shifts', label: 'Shifts', icon: Timer },
         { to: '/payroll', label: 'Payroll Payouts', icon: CreditCard },

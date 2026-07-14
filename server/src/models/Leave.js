@@ -62,6 +62,18 @@ const leaveSchema = new Schema(
     approvedAt: {
       type: Date,
     },
+    approvals: [{
+      approverId: { type: Schema.Types.ObjectId, ref: 'Employee' },
+      role: { type: String, enum: ['Team Lead', 'Department Manager', 'HR Manager'] },
+      status: { type: String, enum: ['Pending', 'Approved', 'Rejected'] },
+      comments: String,
+      actionedAt: { type: Date, default: Date.now }
+    }],
+    currentStage: {
+      type: String,
+      enum: ['Team Lead', 'Department Manager', 'HR Manager'],
+      default: 'Team Lead',
+    },
   },
   baseSchemaOptions
 );
