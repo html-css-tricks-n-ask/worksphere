@@ -155,6 +155,7 @@ export const getAttendanceStats = asyncHandler(async (req, res) => {
 export const getMyAttendance = asyncHandler(async (req, res) => {
   const emp = req.employee;
   const employeeId = emp._id.toString();
+  const companyId = emp.companyId.toString();
 
   const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
   const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 30;
