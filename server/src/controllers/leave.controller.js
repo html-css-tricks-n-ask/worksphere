@@ -14,6 +14,7 @@ export const applyLeave = asyncHandler(async (req, res) => {
 
   const emp = req.employee;
   const employeeId = emp._id.toString();
+  const companyId = emp.companyId.toString();
   const empEmail = email || emp.email;
   const empName = firstName || emp.firstName || 'Team Member';
 
