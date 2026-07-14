@@ -1,4 +1,4 @@
-import { Component, } from 'react';
+import React, { Component, } from 'react';
 import { ShieldAlert, RotateCcw } from 'lucide-react';
 import { Button } from './ui/button';
 

@@ -11,7 +11,10 @@ export const personalInfoSchema = z.object({
 export const professionalInfoSchema = z.object({
   departmentId: z.string().min(1, 'Department is required.').optional().or(z.literal('')),
   designationId: z.string().min(1, 'Designation is required.').optional().or(z.literal('')),
-  managerId: z.string().optional().or(z.literal('')),
+  managerId: z.string().optional().or(z.literal('')).or(z.null()),
+  teamLeadId: z.string().optional().or(z.literal('')).or(z.null()),
+  locationId: z.string().optional().or(z.literal('')).or(z.null()),
+  teamId: z.string().optional().or(z.literal('')).or(z.null()),
   joiningDate: z.string().or(z.date()).optional().transform(val => val ? new Date(val) : undefined),
   employmentType: z.enum(['Full-Time', 'Part-Time', 'Contract', 'Intern']).default('Full-Time'),
   workLocation: z.string().optional(),

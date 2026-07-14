@@ -36,6 +36,10 @@ import { useSelector } from 'react-redux';
 import { Login, RegisterCompany, ForgotPassword, ResetPassword, VerifyEmail } from '../features/auth/index';
 import NotFound from '../pages/NotFound';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
+import Profile from '../pages/Profile';
+import CompanyProfile from '../pages/CompanyProfile';
+import Locations from '../pages/Locations';
+import Teams from '../pages/Teams';
 
 export const AppRoutes = () => {
   const user = useSelector((state) => state.auth.user);
@@ -71,6 +75,8 @@ export const AppRoutes = () => {
         /* Division routes */
         , React.createElement(Route, { path: "departments", element: React.createElement(Departments, null ),} )
         , React.createElement(Route, { path: "designations", element: React.createElement(Designations, null ),} )
+        , React.createElement(Route, { path: "locations", element: React.createElement(Locations, null ),} )
+        , React.createElement(Route, { path: "teams", element: React.createElement(Teams, null ),} )
 
         /* Workforce Management routes */
         , React.createElement(Route, { path: "attendance", element: React.createElement(Attendance, null ),} )

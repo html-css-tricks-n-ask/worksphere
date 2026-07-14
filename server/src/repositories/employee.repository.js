@@ -11,7 +11,10 @@ export class EmployeeRepository {
       .populate('userId', 'firstName lastName email role status')
       .populate('professionalInfo.departmentId', 'name')
       .populate('professionalInfo.designationId', 'title')
-      .populate('professionalInfo.managerId', 'firstName lastName email employeeId');
+      .populate('professionalInfo.managerId', 'firstName lastName email employeeId')
+      .populate('professionalInfo.teamLeadId', 'firstName lastName email employeeId')
+      .populate('professionalInfo.locationId', 'name')
+      .populate('professionalInfo.teamId', 'name');
   }
 
   async findByEmployeeId(employeeId) {
@@ -27,7 +30,10 @@ export class EmployeeRepository {
       .populate('userId', 'firstName lastName email role status')
       .populate('professionalInfo.departmentId', 'name')
       .populate('professionalInfo.designationId', 'title')
-      .populate('professionalInfo.managerId', 'firstName lastName email employeeId');
+      .populate('professionalInfo.managerId', 'firstName lastName email employeeId')
+      .populate('professionalInfo.teamLeadId', 'firstName lastName email employeeId')
+      .populate('professionalInfo.locationId', 'name')
+      .populate('professionalInfo.teamId', 'name');
   }
 
   async softDelete(id) {
@@ -46,18 +52,7 @@ export class EmployeeRepository {
     return employee;
   }
 
-  async findAll(params
-
-
-
-
-
-
-
-
-
-
-) {
+  async findAll(params) {
     const filter = {};
 
     if (params.search) {
@@ -96,6 +91,9 @@ export class EmployeeRepository {
         .populate('professionalInfo.departmentId', 'name')
         .populate('professionalInfo.designationId', 'title')
         .populate('professionalInfo.managerId', 'firstName lastName email employeeId')
+        .populate('professionalInfo.teamLeadId', 'firstName lastName email employeeId')
+        .populate('professionalInfo.locationId', 'name')
+        .populate('professionalInfo.teamId', 'name')
         .sort(sort)
         .skip(skip)
         .limit(params.limit)

@@ -140,6 +140,21 @@ const employeeSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: 'Employee',
       },
+      teamLeadId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+        default: null,
+      },
+      locationId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location',
+        default: null,
+      },
+      teamId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Team',
+        default: null,
+      },
       joiningDate: Date,
       employmentType: {
         type: String,

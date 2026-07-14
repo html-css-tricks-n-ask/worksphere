@@ -32,6 +32,16 @@ const departmentSchema = new Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
+      default: null,
+    },
+    locationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Location',
+      default: null,
+    },
   },
   baseSchemaOptions
 );

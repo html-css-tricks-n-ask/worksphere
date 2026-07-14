@@ -6,15 +6,23 @@ export class DepartmentRepository {
   }
 
   async findById(id) {
-    return Department.findById(id).populate('departmentHead', 'firstName lastName email');
+    return Department.findById(id)
+      .populate('departmentHead', 'firstName lastName email')
+      .populate('parentId', 'name')
+      .populate('locationId', 'name');
   }
 
   async findByName(name) {
-    return Department.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+    return Department.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } })
+      .populate('parentId', 'name')
+      .populate('locationId', 'name');
   }
 
   async update(id, data) {
-    return Department.findByIdAndUpdate(id, data, { new: true }).populate('departmentHead', 'firstName lastName email');
+    return Department.findByIdAndUpdate(id, data, { new: true })
+      .populate('departmentHead', 'firstName lastName email')
+      .populate('parentId', 'name')
+      .populate('locationId', 'name');
   }
 
   async softDelete(id) {
@@ -33,14 +41,7 @@ export class DepartmentRepository {
     return department;
   }
 
-  async findAll(params
-
-
-
-
-
-
-) {
+  async findAll(params) {
     const filter = {};
 
     if (params.search) {
@@ -62,6 +63,8 @@ export class DepartmentRepository {
     const [departments, total] = await Promise.all([
       Department.find(filter)
         .populate('departmentHead', 'firstName lastName email')
+        .populate('parentId', 'name')
+        .populate('locationId', 'name')
         .sort(sort)
         .skip(skip)
         .limit(params.limit)

@@ -20,6 +20,8 @@ import notificationsRouter from './notifications.js';
 import aiRouter from './ai.js';
 import auditRouter from './audit.js';
 import superAdminRouter from './superAdmin.js';
+import locationsRouter from './locations.js';
+import teamsRouter from './teams.js';
 
 const router = Router();
 
@@ -44,5 +46,7 @@ router.use('/notifications', notificationsRouter);
 router.use('/ai', aiRouter);
 router.use('/audit', auditRouter);
 router.use('/super-admin', superAdminRouter);
+router.use('/locations', locationsRouter);
+router.use('/teams', teamsRouter);
 
 export default router;

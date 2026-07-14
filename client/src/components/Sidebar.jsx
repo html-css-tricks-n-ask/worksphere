@@ -35,6 +35,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/employees', label: 'Employees', icon: Users },
         { to: '/departments', label: 'Departments', icon: Building2 },
+        { to: '/locations', label: 'Office Locations', icon: Globe },
+        { to: '/teams', label: 'Teams & Groups', icon: Users },
         { to: '/attendance', label: 'Attendance', icon: CalendarCheck },
         { to: '/leave', label: 'Leave', icon: CalendarOff },
         { to: '/holidays', label: 'Holidays', icon: Calendar },

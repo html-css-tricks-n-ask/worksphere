@@ -70,6 +70,10 @@ export const updateDepartment = asyncHandler(async (req, res) => {
     }
   }
 
+  if (parsed.parentId && parsed.parentId === req.params.id) {
+    throw new ApiError(400, 'A department cannot be its own parent.');
+  }
+
   const department = await departmentRepository.update(req.params.id, parsed );
   if (!department) {
     throw new ApiError(404, 'Department not found.');
