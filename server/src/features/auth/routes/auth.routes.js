@@ -8,6 +8,7 @@ import {
   resendVerification,
   forgotPassword,
   resetPassword,
+  activate,
 } from '../controllers/auth.controller.js';
 
 const router = Router();
@@ -171,5 +172,6 @@ router.post('/forgot-password', forgotPassword);
  *         description: Password reset complete.
  */
 router.post('/reset-password', resetPassword);
+router.post('/activate', activate);
 
 export default router;

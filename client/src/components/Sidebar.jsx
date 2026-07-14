@@ -13,6 +13,7 @@ import {
   Timer,
   Calendar,
   CheckSquare,
+  GitMerge,
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { useSelector } from 'react-redux';
@@ -35,6 +36,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
     : [
         { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/employees', label: 'Employees', icon: Users },
+        { to: '/org-chart', label: 'Org Chart', icon: GitMerge },
         { to: '/departments', label: 'Departments', icon: Building2 },
         { to: '/locations', label: 'Office Locations', icon: Globe },
         { to: '/teams', label: 'Teams & Groups', icon: Users },

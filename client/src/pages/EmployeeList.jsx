@@ -1,6 +1,6 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import React, { useEffect, useState } from 'react';
+function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Edit2, Eye, Trash2, Download, Upload, Filter, RefreshCw, User } from 'lucide-react';
+import { Plus, Edit2, Eye, Trash2, Download, Upload, Filter, RefreshCw, User, Mail } from 'lucide-react';
 import { axiosInstance } from '../services/axiosInstance';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
@@ -113,9 +113,22 @@ export const EmployeeList = () => {
     try {
       await axiosInstance.delete(`/employees/${selectedEmp.id}`);
       setSuccessMsg('Employee profile soft-deleted successfully.');
+      setDeleteOpen(false);
       loadData();
     } catch (err) {
       setErrorMsg(_optionalChain([err, 'access', _ => _.response, 'optionalAccess', _2 => _2.data, 'optionalAccess', _3 => _3.message]) || 'Failed to soft delete employee.');
+    }
+  };
+
+  const handleSendInvite = async (empId) => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      await axiosInstance.post(`/employees/${empId}/invite`);
+      setSuccessMsg('Onboarding invitation email sent successfully.');
+      loadData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to send account invitation.');
     }
   };
 
@@ -133,7 +146,7 @@ export const EmployeeList = () => {
       , React.createElement('div', { className: "flex items-center justify-between"  ,}
         , React.createElement('div', null
           , React.createElement('h1', { className: "text-2xl font-bold tracking-tight"  ,}, "Employee Registry" )
-          , React.createElement('p', { className: "text-sm text-muted-foreground" ,}, "Manage profile folders, document archives, and careers."      )
+          , React.createElement('p', { className: "text-sm text-muted-foreground" ,}, "Manage profile folders, document archives, invites, and careers."      )
         )
         , React.createElement('div', { className: "flex gap-2" ,}
           , React.createElement(Button, { variant: "outline", size: "sm", onClick: () => setImportOpen(true), className: "gap-1.5 text-xs font-semibold"  ,}
@@ -186,6 +199,7 @@ export const EmployeeList = () => {
                 , React.createElement(TableHead, null, "Department")
                 , React.createElement(TableHead, null, "Designation")
                 , React.createElement(TableHead, null, "Work Type" )
+                , React.createElement(TableHead, null, "Invite Status" )
                 , React.createElement(TableHead, null, "Status")
                 , React.createElement(TableHead, { className: "text-right",}, "Actions")
               )
@@ -193,13 +207,13 @@ export const EmployeeList = () => {
             , React.createElement(TableBody, null
               , loading ? (
                 React.createElement(TableRow, null
-                  , React.createElement(TableCell, { colSpan: 7, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "Loading registry folder..."
+                  , React.createElement(TableCell, { colSpan: 8, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "Loading registry folder..."
 
                   )
                 )
               ) : employees.length === 0 ? (
                 React.createElement(TableRow, null
-                  , React.createElement(TableCell, { colSpan: 7, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "No employees matching filters found."
+                  , React.createElement(TableCell, { colSpan: 8, className: "text-center py-8 text-xs text-muted-foreground"   ,}, "No employees matching filters found."
 
                   )
                 )
@@ -226,12 +240,22 @@ export const EmployeeList = () => {
                       , React.createElement(Badge, { variant: "outline",}, _optionalChain([emp, 'access', _10 => _10.professionalInfo, 'optionalAccess', _11 => _11.employmentType]) || 'Full-Time')
                     )
                     , React.createElement(TableCell, null
+                      , React.createElement(Badge, { variant: emp.inviteStatus === 'Accepted' ? 'default' : emp.inviteStatus === 'Sent' ? 'outline' : 'secondary', className: emp.inviteStatus === 'Sent' ? 'text-indigo-600 border-indigo-200 bg-indigo-50/50' : '' }
+                        , emp.inviteStatus || 'Pending'
+                      )
+                    )
+                    , React.createElement(TableCell, null
                       , React.createElement(Badge, { variant: emp.status === 'Active' ? 'default' : 'secondary',}
                         , emp.status
                       )
                     )
                     , React.createElement(TableCell, { className: "text-right",}
                       , React.createElement('div', { className: "flex justify-end gap-1.5"  ,}
+                        , emp.inviteStatus !== 'Accepted' && (
+                          React.createElement(Button, { variant: "ghost", size: "icon", className: "h-7 w-7" , onClick: () => handleSendInvite(emp.id), title: "Send Activation Email" ,}
+                            , React.createElement(Mail, { className: "h-3.5 w-3.5 text-indigo-600 hover:text-indigo-800"   ,} )
+                          )
+                        )
                         , React.createElement(Button, { variant: "ghost", size: "icon", className: "h-7 w-7" , onClick: () => navigate(`/employees/${emp.id}`),}
                           , React.createElement(Eye, { className: "h-3.5 w-3.5 text-muted-foreground hover:text-foreground"   ,} )
                         )

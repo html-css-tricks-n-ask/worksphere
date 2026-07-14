@@ -208,6 +208,19 @@ const employeeSchema = new Schema(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    inviteStatus: {
+      type: String,
+      enum: ['Pending', 'Sent', 'Accepted'],
+      default: 'Pending',
+    },
+    inviteToken: {
+      type: String,
+      select: false,
+    },
+    inviteExpires: {
+      type: Date,
+      select: false,
+    },
     status: {
       type: String,
       enum: ['Active', 'Inactive'],

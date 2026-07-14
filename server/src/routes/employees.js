@@ -13,6 +13,7 @@ import {
   getDashboardWidgets,
   exportEmployees,
   importEmployees,
+  inviteEmployee,
 } from '../controllers/employee.controller.js';
 import { authenticateUser } from '../middlewares/auth.js';
 import { tenantMiddleware } from '../middlewares/tenant.js';
@@ -152,5 +153,6 @@ router.delete('/:id/documents/:documentId', deleteEmployeeDocument);
  *       - bearerAuth: []
  */
 router.get('/:id/timeline', getEmployeeTimeline);
+router.post('/:id/invite', auditMiddleware('INVITE_EMPLOYEE'), inviteEmployee);
 
 export default router;

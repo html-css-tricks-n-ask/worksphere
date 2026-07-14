@@ -147,3 +147,12 @@ export const resetPassword = asyncHandler(
     res.status(200).json(new ApiResponse(200, null, result.message));
   },
 );
+
+export const activate = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    throw new ApiError(400, "Token and password are required.");
+  }
+  const result = await authService.activateAccount(token, password);
+  res.status(200).json(new ApiResponse(200, null, result.message));
+});

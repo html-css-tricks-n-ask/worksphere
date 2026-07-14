@@ -12,6 +12,7 @@ import { emailService } from '../../../services/email/email.service.js';
 import { logger } from '../../../config/logger.js';
 import { employeeRepository } from '../../../repositories/employee.repository.js';
 import { employmentHistoryRepository } from '../../../repositories/employmentHistory.repository.js';
+import Employee from '../../../models/Employee.js';
 
 /**
  * Enterprise service coordinating authentication validation, credentials sync,
@@ -299,6 +300,48 @@ class AuthService {
     } catch (error) {
       throw new ApiError(401, 'Invalid or expired refresh token.');
     }
+  }
+
+  async activateAccount(token, password) {
+    const employee = await Employee.findOne({
+      inviteToken: token,
+      inviteExpires: { $gt: new Date() }
+    });
+
+    if (!employee) {
+      throw new ApiError(400, 'Invalid or expired activation token.');
+    }
+
+    const user = await userRepository.findById(employee.userId.toString());
+    if (!user) {
+      throw new ApiError(404, 'Linked user profile not found.');
+    }
+
+    // Hash and update password and status
+    user.password = await hashPassword(password);
+    user.status = 'Active';
+    user.emailVerified = true;
+    await user.save();
+
+    // Update invitation status
+    employee.inviteStatus = 'Accepted';
+    employee.inviteToken = undefined;
+    employee.inviteExpires = undefined;
+    await employee.save();
+
+    // Send welcome email in background
+    const company = await companyRepository.findById(employee.companyId.toString());
+    const companyName = company ? company.name : 'WorkSphere';
+
+    emailService.sendWelcomeEmail(
+      employee.email,
+      `${employee.firstName} ${employee.lastName}`,
+      companyName
+    ).catch((err) => {
+      logger.error(`[BACKGROUND EMAIL ERROR] Failed to send welcome email to ${employee.email}: ${err.message}`);
+    });
+
+    return { message: 'Account activated successfully. You can now log in.' };
   }
 }
 

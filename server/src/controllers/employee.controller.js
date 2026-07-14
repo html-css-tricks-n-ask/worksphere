@@ -10,6 +10,8 @@ import { createEmployeeSchema, updateEmployeeSchema } from '../validators/employ
 import { ApiResponse, ApiError } from '../utils/responseWrapper.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { hashPassword } from '../utils/password.js';
+import Employee from '../models/Employee.js';
+import { emailService } from '../services/email/email.service.js';
 import crypto from 'crypto';
 
 export const createEmployee = asyncHandler(async (req, res) => {
@@ -421,4 +423,29 @@ export const importEmployees = asyncHandler(async (req, res) => {
       `Successfully imported ${imported.length} employees with ${errors.length} failures.`
     )
   );
+});
+
+export const inviteEmployee = asyncHandler(async (req, res) => {
+  const employee = await Employee.findById(req.params.id);
+  if (!employee) {
+    throw new ApiError(404, 'Employee profile not found.');
+  }
+
+  // Generate Invite Token
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  employee.inviteToken = token;
+  employee.inviteExpires = expires;
+  employee.inviteStatus = 'Sent';
+  await employee.save();
+
+  // Send Invitation Email
+  await emailService.sendInvitationEmail(
+    employee.email,
+    `${employee.firstName} ${employee.lastName}`,
+    token
+  );
+
+  res.status(200).json(new ApiResponse(200, employee, 'Invitation email sent successfully.'));
 });

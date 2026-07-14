@@ -41,6 +41,8 @@ import CompanyProfile from '../pages/CompanyProfile';
 import Locations from '../pages/Locations';
 import Teams from '../pages/Teams';
 import ApprovalInbox from '../pages/ApprovalInbox';
+import ActivateAccount from '../pages/ActivateAccount';
+import OrgChart from '../pages/OrgChart';
 
 export const AppRoutes = () => {
   const user = useSelector((state) => state.auth.user);
@@ -53,6 +55,7 @@ export const AppRoutes = () => {
       , React.createElement(Route, { path: "/forgot-password", element: React.createElement(ForgotPassword, null ),} )
       , React.createElement(Route, { path: "/reset-password", element: React.createElement(ResetPassword, null ),} )
       , React.createElement(Route, { path: "/verify-email", element: React.createElement(VerifyEmail, null ),} )
+      , React.createElement(Route, { path: "/activate-account", element: React.createElement(ActivateAccount, null ),} )
 
       /* Authenticated Dashboard Shell Layout */
       , React.createElement(Route, { path: "/", element: React.createElement(AppLayout, null ),}
@@ -72,6 +75,7 @@ export const AppRoutes = () => {
         , React.createElement(Route, { path: "employees/create", element: React.createElement(EmployeeCreate, null ),} )
         , React.createElement(Route, { path: "employees/:id", element: React.createElement(EmployeeDetails, null ),} )
         , React.createElement(Route, { path: "employees/:id/edit", element: React.createElement(EmployeeEdit, null ),} )
+        , React.createElement(Route, { path: "org-chart", element: React.createElement(OrgChart, null ),} )
 
         /* Division routes */
         , React.createElement(Route, { path: "departments", element: React.createElement(Departments, null ),} )

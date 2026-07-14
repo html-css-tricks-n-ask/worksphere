@@ -3,6 +3,7 @@ import { logger } from '../../config/logger.js';
 import { verifyEmailTemplate } from './templates/verifyEmail.js';
 import { resetPasswordTemplate } from './templates/resetPassword.js';
 import { welcomeEmailTemplate } from './templates/welcomeEmail.js';
+import { invitationEmailTemplate } from './templates/invitationEmail.js';
 
 class EmailService {
   
@@ -64,6 +65,13 @@ class EmailService {
   async sendWelcomeEmail(email, name, companyName) {
     const html = welcomeEmailTemplate(name, companyName);
     return this.sendMail(email, `Welcome to WorkSphere, ${name}!`, html);
+  }
+
+  async sendInvitationEmail(email, name, token) {
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const activationUrl = `${clientUrl}/activate-account?token=${token}`;
+    const html = invitationEmailTemplate(name, activationUrl);
+    return this.sendMail(email, 'Set Up Your WorkSphere Account password', html);
   }
 }
 
